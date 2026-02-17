@@ -1,0 +1,288 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Mi Perfil">
+<div class="min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
+        <span class="font-display font-bold text-xl">API</span>
+      </div>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Dashboard</a>
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
+        <a href="/profile" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(0,212,255,0.1);color:#00D4FF">Perfil</a>
+      </div>
+      <button id="logoutBtn" class="btn-danger text-sm px-4 py-2">Salir</button>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="mb-8 page-enter">
+      <h1 class="font-display font-black text-4xl" style="letter-spacing:-0.04em">Mi Perfil</h1>
+      <p class="mt-2" style="color:rgba(240,240,255,0.4)">Gestiona tu información y seguridad</p>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="spinner"></div>
+    </div>
+
+    <div id="mainContent" class="hidden space-y-6">
+
+      <!-- Avatar + Info Card -->
+      <div class="glass p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <!-- Avatar generado -->
+        <div id="avatar" class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black flex-shrink-0"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF);font-family:'Outfit',sans-serif"></div>
+        <div class="flex-1 text-center sm:text-left">
+          <h2 id="displayName" class="font-display font-black text-2xl" style="letter-spacing:-0.03em"></h2>
+          <p id="displayUsername" class="mt-0.5" style="color:rgba(240,240,255,0.4)"></p>
+          <div class="flex gap-2 mt-3 justify-center sm:justify-start flex-wrap">
+            <span id="displayRole"></span>
+            <span class="badge-success">✓ Activo</span>
+            <span id="displayDate" class="text-xs px-3 py-1 rounded-full" style="background:rgba(255,255,255,0.05);color:rgba(240,240,255,0.4)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editar perfil -->
+      <div class="glass p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-display font-bold text-xl">Información Personal</h3>
+          <button id="toggleEditBtn" class="btn-ghost text-sm px-4 py-2">✏️ Editar</button>
+        </div>
+
+        <!-- Vista de solo lectura -->
+        <div id="readView" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <p class="text-xs uppercase tracking-widest mb-1" style="color:rgba(240,240,255,0.3)">Nombre</p>
+              <p id="infoFullName" class="font-semibold">—</p>
+            </div>
+            <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <p class="text-xs uppercase tracking-widest mb-1" style="color:rgba(240,240,255,0.3)">Usuario</p>
+              <p id="infoUsername" class="font-semibold font-mono" style="color:#00D4FF">—</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.03)">
+            <p class="text-xs uppercase tracking-widest mb-1" style="color:rgba(240,240,255,0.3)">Email</p>
+            <p id="infoEmail" class="font-semibold">—</p>
+          </div>
+        </div>
+
+        <!-- Formulario de edición (oculto por defecto) -->
+        <form id="editForm" class="hidden space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Nombre completo</label>
+              <input id="editFullName" class="input-dark" placeholder="Tu nombre" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Nombre de usuario</label>
+              <input id="editUsername" class="input-dark" placeholder="usuario" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Email</label>
+            <input id="editEmail" type="email" class="input-dark" placeholder="email@ejemplo.com" />
+          </div>
+          <div id="editError" class="alert-error"></div>
+          <div class="flex gap-3">
+            <button type="button" id="cancelEditBtn" class="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" id="saveEditBtn" class="btn-primary flex-1"><span id="saveEditText">Guardar cambios</span></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Cambiar contraseña -->
+      <div class="glass p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-display font-bold text-xl">Seguridad</h3>
+          <button id="togglePassBtn" class="btn-ghost text-sm px-4 py-2">🔑 Cambiar contraseña</button>
+        </div>
+
+        <form id="passForm" class="hidden space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Contraseña actual</label>
+            <input id="currentPass" type="password" class="input-dark" placeholder="••••••••" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Nueva contraseña</label>
+            <input id="newPass" type="password" class="input-dark" placeholder="Mínimo 6 caracteres" minlength="6" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Confirmar contraseña</label>
+            <input id="confirmPass" type="password" class="input-dark" placeholder="Repite la contraseña" />
+          </div>
+          <div id="passError" class="alert-error"></div>
+          <div class="flex gap-3">
+            <button type="button" id="cancelPassBtn" class="btn-ghost flex-1">Cancelar</button>
+            <button type="submit" id="savePassBtn" class="btn-primary flex-1"><span id="savePassText">Actualizar contraseña</span></button>
+          </div>
+        </form>
+
+        <div id="passReadView">
+          <div class="flex items-center gap-4 p-4 rounded-xl" style="background:rgba(255,255,255,0.03)">
+            <span class="text-2xl">🔒</span>
+            <div>
+              <p class="font-semibold text-sm">Contraseña protegida</p>
+              <p class="text-xs mt-0.5" style="color:rgba(240,240,255,0.4)">Hash bcrypt con salt automático</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="glass p-6" style="border-color:rgba(255,45,155,0.15)">
+        <h3 class="font-display font-bold text-xl mb-4" style="color:#FF6BA8">Zona Peligrosa</h3>
+        <div class="flex items-center justify-between p-4 rounded-xl" style="background:rgba(255,45,155,0.05);border:1px solid rgba(255,45,155,0.1)">
+          <div>
+            <p class="font-semibold text-sm">Cerrar sesión</p>
+            <p class="text-xs mt-0.5" style="color:rgba(240,240,255,0.4)">Se eliminarán tus tokens de sesión</p>
+          </div>
+          <button id="logoutBtnCard" class="btn-danger text-sm">Cerrar sesión</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</Layout>
+
+<script>
+  import { requireAuth, getUser, saveUser } from '../lib/auth.js';
+  import api from '../lib/api.js';
+
+  requireAuth();
+
+  let user = getUser();
+  document.getElementById('logoutBtn')?.addEventListener('click', () => api.logout());
+  document.getElementById('logoutBtnCard')?.addEventListener('click', () => api.logout());
+
+  function renderUser(u) {
+    const initials = u.full_name?.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
+    document.getElementById('avatar').textContent = initials;
+    document.getElementById('displayName').textContent = u.full_name;
+    document.getElementById('displayUsername').textContent = '@' + u.username;
+    document.getElementById('infoFullName').textContent = u.full_name;
+    document.getElementById('infoUsername').textContent = u.username;
+    document.getElementById('infoEmail').textContent = u.email;
+    document.getElementById('editFullName').value = u.full_name;
+    document.getElementById('editUsername').value = u.username;
+    document.getElementById('editEmail').value = u.email;
+
+    const roleEl = document.getElementById('displayRole');
+    roleEl.className = u.role === 'admin' ? 'badge-admin' : 'badge-user';
+    roleEl.textContent = u.role.toUpperCase();
+
+    const date = new Date(u.created_at).toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('displayDate').textContent = 'Miembro desde ' + date;
+  }
+
+  // Load user
+  async function loadUser() {
+    try {
+      const freshUser = await api.getCurrentUser();
+      saveUser(freshUser);
+      user = freshUser;
+      renderUser(freshUser);
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('mainContent').classList.remove('hidden');
+    } catch {
+      if (user) {
+        renderUser(user);
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+      }
+    }
+  }
+
+  // Toggle edit form
+  let editOpen = false;
+  document.getElementById('toggleEditBtn')?.addEventListener('click', () => {
+    editOpen = !editOpen;
+    document.getElementById('readView').classList.toggle('hidden', editOpen);
+    document.getElementById('editForm').classList.toggle('hidden', !editOpen);
+    document.getElementById('toggleEditBtn').textContent = editOpen ? '✕ Cancelar' : '✏️ Editar';
+  });
+  document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+    document.getElementById('toggleEditBtn').click();
+  });
+
+  // Save profile
+  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('editError');
+    errEl.classList.remove('alert-visible');
+    const saveText = document.getElementById('saveEditText');
+    saveText.textContent = 'Guardando...';
+
+    try {
+      const updated = await api.updateProfile({
+        full_name: document.getElementById('editFullName').value,
+        username: document.getElementById('editUsername').value,
+        email: document.getElementById('editEmail').value,
+      });
+      saveUser(updated);
+      user = updated;
+      renderUser(updated);
+      showToast('Perfil actualizado ✓', 'success');
+      document.getElementById('toggleEditBtn').click();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.add('alert-visible');
+    }
+    saveText.textContent = 'Guardar cambios';
+  });
+
+  // Toggle password form
+  let passOpen = false;
+  document.getElementById('togglePassBtn')?.addEventListener('click', () => {
+    passOpen = !passOpen;
+    document.getElementById('passReadView').classList.toggle('hidden', passOpen);
+    document.getElementById('passForm').classList.toggle('hidden', !passOpen);
+    document.getElementById('togglePassBtn').textContent = passOpen ? '✕ Cancelar' : '🔑 Cambiar contraseña';
+  });
+  document.getElementById('cancelPassBtn')?.addEventListener('click', () => {
+    document.getElementById('togglePassBtn').click();
+  });
+
+  // Save password
+  document.getElementById('passForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('passError');
+    errEl.classList.remove('alert-visible');
+
+    const newPass = document.getElementById('newPass').value;
+    const confirmPass = document.getElementById('confirmPass').value;
+
+    if (newPass !== confirmPass) {
+      errEl.textContent = 'Las contraseñas no coinciden';
+      errEl.classList.add('alert-visible');
+      return;
+    }
+
+    const saveText = document.getElementById('savePassText');
+    saveText.textContent = 'Actualizando...';
+
+    try {
+      await api.changePassword(document.getElementById('currentPass').value, newPass);
+      showToast('Contraseña actualizada ✓', 'success');
+      document.getElementById('passForm').reset();
+      document.getElementById('togglePassBtn').click();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.add('alert-visible');
+    }
+    saveText.textContent = 'Actualizar contraseña';
+  });
+
+  loadUser();
+</script>

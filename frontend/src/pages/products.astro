@@ -1,0 +1,333 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Productos">
+<div class="min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
+        <span class="font-display font-bold text-xl">API</span>
+      </div>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Dashboard</a>
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(0,212,255,0.1);color:#00D4FF">Productos</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <div id="adminActions" class="hidden">
+          <button id="newProductBtn" class="btn-primary text-sm"><span>+ Nuevo</span></button>
+        </div>
+        <a href="/login" id="loginLink" class="btn-ghost text-sm">Iniciar sesión</a>
+        <button id="logoutBtn" class="hidden btn-danger text-sm px-4 py-2">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="mb-8 page-enter">
+      <h1 class="font-display font-black text-4xl md:text-5xl mb-2" style="letter-spacing:-0.04em">Catálogo</h1>
+      <p style="color:rgba(240,240,255,0.4)">Explora y gestiona todos los productos</p>
+    </div>
+
+    <!-- Filters bar -->
+    <div class="glass p-4 mb-8 flex flex-col md:flex-row gap-4">
+      <div class="flex-1 relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2" style="color:rgba(240,240,255,0.3)">🔍</span>
+        <input id="searchInput" type="text" placeholder="Buscar productos..."
+          class="input-dark pl-10 w-full" />
+      </div>
+      <div class="flex gap-3">
+        <select id="sortSelect" class="input-dark" style="min-width:150px">
+          <option value="created_at">Más recientes</option>
+          <option value="price_asc">Precio: menor</option>
+          <option value="price_desc">Precio: mayor</option>
+          <option value="name">Nombre A-Z</option>
+        </select>
+        <button id="searchBtn" class="btn-primary text-sm px-6"><span>Buscar</span></button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="spinner"></div>
+      <p style="color:rgba(240,240,255,0.4);font-size:0.9rem">Cargando productos...</p>
+    </div>
+
+    <!-- Empty -->
+    <div id="emptyState" class="hidden text-center py-20">
+      <div class="text-6xl mb-4">📦</div>
+      <h3 class="font-display font-bold text-2xl mb-2">Sin resultados</h3>
+      <p style="color:rgba(240,240,255,0.4)">Intenta con otro término de búsqueda</p>
+    </div>
+
+    <!-- Grid -->
+    <div id="productsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-center gap-4 mt-10">
+      <button id="prevBtn" class="btn-ghost text-sm px-5 py-2 disabled:opacity-30">← Anterior</button>
+      <span id="pageInfo" class="text-sm" style="color:rgba(240,240,255,0.45)"></span>
+      <button id="nextBtn" class="btn-ghost text-sm px-5 py-2 disabled:opacity-30">Siguiente →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal crear/editar producto (solo admin) -->
+<div id="productModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="flex justify-between items-center mb-6">
+      <h3 id="modalTitle" class="font-display font-bold text-2xl">Nuevo Producto</h3>
+      <button id="closeModal" style="color:rgba(240,240,255,0.4)" class="hover:text-white transition-colors">✕</button>
+    </div>
+    <form id="productForm" class="space-y-4">
+      <input type="hidden" id="productId" />
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Nombre</label>
+          <input id="pName" class="input-dark" placeholder="Nombre del producto" required />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Precio</label>
+          <input id="pPrice" type="number" step="0.01" min="0" class="input-dark" placeholder="0.00" required />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Stock</label>
+          <input id="pStock" type="number" min="0" class="input-dark" placeholder="0" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Categoría</label>
+          <input id="pCategory" class="input-dark" placeholder="Electrónica..." />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Marca</label>
+          <input id="pBrand" class="input-dark" placeholder="Brand..." />
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Descripción</label>
+          <textarea id="pDesc" class="input-dark resize-none" rows="2" placeholder="Descripción..."></textarea>
+        </div>
+      </div>
+      <div id="modalError" class="alert-error"></div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="cancelModal" class="btn-ghost flex-1">Cancelar</button>
+        <button type="submit" id="saveBtn" class="btn-primary flex-1"><span id="saveBtnText">Guardar</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+</Layout>
+
+<script>
+  import api from '../lib/api.js';
+  import { isAuthenticated, isAdmin } from '../lib/auth.js';
+
+  let currentPage = 0;
+  const limit = 9;
+  let currentSearch = '';
+  let currentSort = 'created_at';
+  let editingId = null;
+
+  // Auth UI
+  const authenticated = isAuthenticated();
+  const admin = isAdmin();
+
+  if (authenticated) {
+    document.getElementById('loginLink')?.classList.add('hidden');
+    document.getElementById('logoutBtn')?.classList.remove('hidden');
+  }
+  if (admin) {
+    document.getElementById('adminActions')?.classList.remove('hidden');
+  }
+
+  document.getElementById('logoutBtn')?.addEventListener('click', () => api.logout());
+
+  // Load products
+  async function loadProducts(skip = 0, search = '', sort = 'created_at') {
+    const loadingEl = document.getElementById('loadingState');
+    const gridEl = document.getElementById('productsGrid');
+    const emptyEl = document.getElementById('emptyState');
+    const paginEl = document.getElementById('pagination');
+
+    loadingEl.classList.remove('hidden');
+    gridEl.classList.add('hidden');
+    emptyEl.classList.add('hidden');
+    paginEl.classList.add('hidden');
+
+    const sortMap = { price_asc: { sort_by: 'price', order: 'asc' }, price_desc: { sort_by: 'price', order: 'desc' }, name: { sort_by: 'name', order: 'asc' }, created_at: { sort_by: 'created_at', order: 'desc' } };
+    const sortParams = sortMap[sort] || {};
+
+    try {
+      const data = await api.getProducts({ skip, limit, search, ...sortParams });
+      loadingEl.classList.add('hidden');
+
+      if (data.products.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      gridEl.innerHTML = data.products.map(p => `
+        <div class="product-card">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+              style="background:rgba(0,212,255,0.08)">📦</div>
+            <span class="${p.stock > 0 ? 'badge-success' : 'badge-danger'}">
+              ${p.stock > 0 ? `${p.stock} uds` : 'Agotado'}
+            </span>
+          </div>
+          <h3 class="font-display font-bold text-lg mb-1 leading-tight">${p.name}</h3>
+          <p class="text-sm mb-4 line-clamp-2" style="color:rgba(240,240,255,0.4)">${p.description || 'Sin descripción'}</p>
+          <div class="flex justify-between items-end mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,0.06)">
+            <div>
+              <div class="font-display font-black text-2xl" style="color:#00D4FF">$${p.price}</div>
+              <div class="text-xs mt-0.5" style="color:rgba(240,240,255,0.3)">${p.category || ''}</div>
+            </div>
+            ${admin ? `
+              <div class="flex gap-2">
+                <button onclick="editProduct(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price},${p.stock},'${(p.category||'').replace(/'/g, "\\'")}','${(p.brand||'').replace(/'/g, "\\'")}','${(p.description||'').replace(/'/g, "\\'")}')
+                " class="p-2 rounded-xl transition-all hover:bg-white/10 text-sm" style="color:rgba(240,240,255,0.5)" title="Editar">✏️</button>
+                <button onclick="deleteProduct(${p.id},'${p.name.replace(/'/g, "\\'")}')"
+                  class="p-2 rounded-xl transition-all hover:bg-red-500/10 text-sm" style="color:rgba(240,240,255,0.5)" title="Eliminar">🗑️</button>
+              </div>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      gridEl.classList.remove('hidden');
+
+      // Pagination
+      const total = data.total;
+      document.getElementById('pageInfo').textContent = `${skip + 1}–${Math.min(skip + limit, total)} de ${total}`;
+      document.getElementById('prevBtn').disabled = skip === 0;
+      document.getElementById('nextBtn').disabled = skip + limit >= total;
+      paginEl.classList.remove('hidden');
+    } catch (err) {
+      loadingEl.innerHTML = `<p style="color:#FF6BA8">Error: ${err.message}</p>
+        <button onclick="loadProducts()" class="btn-ghost mt-4 text-sm">Reintentar</button>`;
+    }
+  }
+
+  // Search
+  document.getElementById('searchBtn')?.addEventListener('click', () => {
+    currentSearch = document.getElementById('searchInput').value.trim();
+    currentPage = 0;
+    currentSort = document.getElementById('sortSelect').value;
+    loadProducts(0, currentSearch, currentSort);
+  });
+  document.getElementById('searchInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+  document.getElementById('sortSelect')?.addEventListener('change', () => {
+    document.getElementById('searchBtn').click();
+  });
+
+  // Pagination
+  document.getElementById('prevBtn')?.addEventListener('click', () => {
+    if (currentPage > 0) { currentPage--; loadProducts(currentPage * limit, currentSearch, currentSort); }
+  });
+  document.getElementById('nextBtn')?.addEventListener('click', () => {
+    currentPage++;
+    loadProducts(currentPage * limit, currentSearch, currentSort);
+  });
+
+  // Modal
+  const modal = document.getElementById('productModal');
+  const form = document.getElementById('productForm');
+
+  function openModal(title = 'Nuevo Producto') {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalError').classList.remove('alert-visible');
+    modal.classList.add('active');
+  }
+  function closeModal() {
+    modal.classList.remove('active');
+    form.reset();
+    editingId = null;
+  }
+
+  document.getElementById('newProductBtn')?.addEventListener('click', () => {
+    editingId = null;
+    document.getElementById('saveBtnText').textContent = 'Crear producto';
+    openModal('Nuevo Producto');
+  });
+  document.getElementById('closeModal')?.addEventListener('click', closeModal);
+  document.getElementById('cancelModal')?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  // Edit product
+  window.editProduct = function(id, name, price, stock, category, brand, description) {
+    editingId = id;
+    document.getElementById('pName').value = name;
+    document.getElementById('pPrice').value = price;
+    document.getElementById('pStock').value = stock;
+    document.getElementById('pCategory').value = category;
+    document.getElementById('pBrand').value = brand;
+    document.getElementById('pDesc').value = description;
+    document.getElementById('saveBtnText').textContent = 'Guardar cambios';
+    openModal('Editar Producto');
+  };
+
+  // Delete product
+  window.deleteProduct = async function(id, name) {
+    if (!confirm(`¿Eliminar "${name}"?`)) return;
+    try {
+      await api.deleteProduct(id);
+      showToast(`"${name}" eliminado`, 'success');
+      loadProducts(currentPage * limit, currentSearch, currentSort);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  // Form submit
+  form?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('modalError');
+    errEl.classList.remove('alert-visible');
+    document.getElementById('saveBtnText').textContent = 'Guardando...';
+    document.getElementById('saveBtn').disabled = true;
+
+    const productData = {
+      name: document.getElementById('pName').value,
+      price: parseFloat(document.getElementById('pPrice').value),
+      stock: parseInt(document.getElementById('pStock').value) || 0,
+      category: document.getElementById('pCategory').value || null,
+      brand: document.getElementById('pBrand').value || null,
+      description: document.getElementById('pDesc').value || null,
+    };
+
+    try {
+      if (editingId) {
+        await api.updateProduct(editingId, productData);
+        showToast('Producto actualizado ✓', 'success');
+      } else {
+        await api.createProduct(productData);
+        showToast('Producto creado ✓', 'success');
+      }
+      closeModal();
+      loadProducts(currentPage * limit, currentSearch, currentSort);
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.add('alert-visible');
+      document.getElementById('saveBtnText').textContent = editingId ? 'Guardar cambios' : 'Crear producto';
+      document.getElementById('saveBtn').disabled = false;
+    }
+  });
+
+  // Initial load
+  loadProducts();
+</script>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

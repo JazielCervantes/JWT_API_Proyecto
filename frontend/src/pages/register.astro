@@ -1,0 +1,147 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Registro">
+<div class="min-h-screen flex items-center justify-center px-6 py-16 relative overflow-hidden">
+  <!-- Orbe decorativo -->
+  <div class="absolute top-10 right-10 w-96 h-96 rounded-full opacity-10 pointer-events-none animate-float"
+    style="background:radial-gradient(circle,#9B5CFF,transparent 70%)"></div>
+
+  <div class="w-full max-w-lg page-enter">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <a href="/" class="inline-flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
+        <span class="font-display font-bold text-2xl">API</span>
+      </a>
+      <h1 class="font-display font-black text-4xl mb-3" style="letter-spacing:-0.03em">Crear cuenta</h1>
+      <p style="color:rgba(240,240,255,0.45);font-size:0.9rem">
+        ¿Ya tienes cuenta? <a href="/login" style="color:#00D4FF" class="hover:underline">Inicia sesión</a>
+      </p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="glass p-8">
+      <form id="registerForm" class="space-y-5">
+
+        <!-- Nombre completo -->
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">
+            Nombre Completo
+          </label>
+          <input name="full_name" type="text" required
+            class="input-dark" placeholder="Juan Pérez" autocomplete="name"/>
+        </div>
+
+        <!-- Email y Username en grid -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">
+              Email
+            </label>
+            <input name="email" type="email" required
+              class="input-dark" placeholder="juan@email.com" autocomplete="email"/>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">
+              Usuario
+            </label>
+            <input name="username" type="text" required minlength="3"
+              class="input-dark" placeholder="juanperez" autocomplete="username"/>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">
+            Contraseña
+          </label>
+          <input id="passInput" name="password" type="password" required minlength="6"
+            class="input-dark" placeholder="Mínimo 6 caracteres"/>
+          <!-- Indicador de fortaleza -->
+          <div class="mt-2 flex gap-1">
+            <div id="s1" class="h-1 flex-1 rounded-full transition-all" style="background:rgba(255,255,255,0.1)"></div>
+            <div id="s2" class="h-1 flex-1 rounded-full transition-all" style="background:rgba(255,255,255,0.1)"></div>
+            <div id="s3" class="h-1 flex-1 rounded-full transition-all" style="background:rgba(255,255,255,0.1)"></div>
+            <div id="s4" class="h-1 flex-1 rounded-full transition-all" style="background:rgba(255,255,255,0.1)"></div>
+          </div>
+          <p id="strengthLabel" class="text-xs mt-1" style="color:rgba(240,240,255,0.3)"></p>
+        </div>
+
+        <!-- Alerts -->
+        <div id="errorAlert" class="alert-error"></div>
+        <div id="successAlert" class="alert-success"></div>
+
+        <button type="submit" id="submitBtn" class="btn-primary w-full py-4 text-base">
+          <span id="btnText">Crear cuenta</span>
+        </button>
+
+        <p class="text-center text-xs" style="color:rgba(240,240,255,0.3)">
+          Al registrarte aceptas los términos de uso.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+</Layout>
+
+<script>
+  import api from '../lib/api.js';
+
+  const form = document.getElementById('registerForm');
+  const errorAlert = document.getElementById('errorAlert');
+  const successAlert = document.getElementById('successAlert');
+  const submitBtn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const passInput = document.getElementById('passInput');
+
+  // Password strength
+  passInput?.addEventListener('input', () => {
+    const val = passInput.value;
+    const scores = [val.length >= 6, val.length >= 10, /[A-Z]/.test(val) || /[0-9]/.test(val), /[!@#$%^&*]/.test(val)];
+    const count = scores.filter(Boolean).length;
+    const colors = ['#FF2D9B', '#FF6B00', '#FFD60A', '#00FF88'];
+    const labels = ['Débil', 'Regular', 'Buena', 'Fuerte'];
+    const stripes = ['s1', 's2', 's3', 's4'];
+    
+    stripes.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.style.background = i < count ? colors[count - 1] : 'rgba(255,255,255,0.1)';
+    });
+    document.getElementById('strengthLabel').textContent = val.length > 0 ? labels[count - 1] || '' : '';
+    document.getElementById('strengthLabel').style.color = count > 0 ? colors[count - 1] : 'rgba(240,240,255,0.3)';
+  });
+
+  function setLoading(loading) {
+    submitBtn.disabled = loading;
+    btnText.textContent = loading ? 'Creando cuenta...' : 'Crear cuenta';
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorAlert.classList.remove('alert-visible');
+    successAlert.classList.remove('alert-visible');
+    setLoading(true);
+
+    const fd = new FormData(form);
+    const userData = {
+      full_name: fd.get('full_name'),
+      email: fd.get('email'),
+      username: fd.get('username'),
+      password: fd.get('password'),
+    };
+
+    try {
+      await api.register(userData);
+      successAlert.textContent = '✓ ¡Cuenta creada! Redirigiendo al login...';
+      successAlert.classList.add('alert-visible');
+      showToast('Cuenta creada exitosamente', 'success');
+      setTimeout(() => window.location.href = '/login', 2000);
+    } catch (err) {
+      errorAlert.textContent = err.message || 'Error al crear la cuenta';
+      errorAlert.classList.add('alert-visible');
+      setLoading(false);
+    }
+  });
+</script>
