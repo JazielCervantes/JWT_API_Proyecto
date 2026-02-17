@@ -1,0 +1,271 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Usuarios">
+<div class="min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
+        <span class="font-display font-bold text-xl">API</span>
+      </div>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Dashboard</a>
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
+        <a href="/users" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(155,92,255,0.15);color:#9B5CFF">Usuarios</a>
+      </div>
+      <button id="logoutBtn" class="btn-danger text-sm px-4 py-2">Salir</button>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 page-enter">
+      <div>
+        <h1 class="font-display font-black text-4xl" style="letter-spacing:-0.04em">Usuarios</h1>
+        <p class="mt-2" style="color:rgba(240,240,255,0.4)">Gestión de cuentas y roles del sistema</p>
+      </div>
+      <!-- Search -->
+      <div class="flex gap-3">
+        <input id="searchInput" type="text" placeholder="Buscar usuario..."
+          class="input-dark" style="min-width:220px" />
+        <button id="searchBtn" class="btn-ghost text-sm px-5">Buscar</button>
+      </div>
+    </div>
+
+    <!-- Stats rápidas -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="glass p-5">
+        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Total usuarios</p>
+        <div id="statTotal" class="font-display font-black text-3xl gradient-text">—</div>
+      </div>
+      <div class="glass p-5">
+        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Admins</p>
+        <div id="statAdmins" class="font-display font-black text-3xl" style="color:#9B5CFF">—</div>
+      </div>
+      <div class="glass p-5">
+        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Activos</p>
+        <div id="statActive" class="font-display font-black text-3xl gradient-text-green">—</div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="spinner"></div>
+      <p style="color:rgba(240,240,255,0.4);font-size:0.9rem">Cargando usuarios...</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableContainer" class="hidden glass overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table-dark" id="usersTable">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Miembro desde</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div id="emptyState" class="hidden text-center py-20" style="color:rgba(240,240,255,0.3)">
+      <div class="text-5xl mb-4">👥</div>
+      <p>No se encontraron usuarios</p>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-center gap-4 mt-8">
+      <button id="prevBtn" class="btn-ghost text-sm px-5 py-2">← Anterior</button>
+      <span id="pageInfo" class="text-sm" style="color:rgba(240,240,255,0.45)"></span>
+      <button id="nextBtn" class="btn-ghost text-sm px-5 py-2">Siguiente →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal cambiar rol -->
+<div id="roleModal" class="modal-overlay">
+  <div class="modal-box max-w-sm">
+    <h3 class="font-display font-bold text-xl mb-2">Cambiar Rol</h3>
+    <p id="roleModalUser" class="mb-6" style="color:rgba(240,240,255,0.5)"></p>
+    <div class="space-y-3 mb-6">
+      <button id="setUserBtn" class="w-full p-4 rounded-xl text-left transition-all hover:bg-white/5"
+        style="border:1px solid rgba(255,255,255,0.08)">
+        <div class="badge-user mb-1">USER</div>
+        <p class="text-sm mt-2" style="color:rgba(240,240,255,0.5)">Acceso básico a productos y perfil</p>
+      </button>
+      <button id="setAdminBtn" class="w-full p-4 rounded-xl text-left transition-all hover:bg-white/5"
+        style="border:1px solid rgba(155,92,255,0.2)">
+        <div class="badge-admin mb-1">ADMIN</div>
+        <p class="text-sm mt-2" style="color:rgba(240,240,255,0.5)">Acceso completo. Gestión de usuarios y productos.</p>
+      </button>
+    </div>
+    <button id="closeRoleModal" class="btn-ghost w-full">Cancelar</button>
+  </div>
+</div>
+</Layout>
+
+<script>
+  import { requireAdmin, isAdmin } from '../lib/auth.js';
+  import api from '../lib/api.js';
+
+  requireAdmin();
+  document.getElementById('logoutBtn')?.addEventListener('click', () => api.logout());
+
+  let currentPage = 0;
+  const limit = 15;
+  let currentSearch = '';
+  let selectedUserId = null;
+
+  async function loadUsers(skip = 0, search = '') {
+    const loadEl = document.getElementById('loadingState');
+    const tableEl = document.getElementById('tableContainer');
+    const emptyEl = document.getElementById('emptyState');
+    const pageEl = document.getElementById('pagination');
+
+    loadEl.classList.remove('hidden');
+    tableEl.classList.add('hidden');
+    emptyEl.classList.add('hidden');
+    pageEl.classList.add('hidden');
+
+    try {
+      const data = await api.getUsers({ skip, limit, search });
+      loadEl.classList.add('hidden');
+
+      // Stats
+      document.getElementById('statTotal').textContent = data.total ?? data.users?.length ?? '—';
+      const users = data.users || data;
+      const admins = users.filter(u => u.role === 'admin').length;
+      const active = users.filter(u => u.is_active).length;
+      document.getElementById('statAdmins').textContent = admins;
+      document.getElementById('statActive').textContent = active;
+
+      if (!users.length) { emptyEl.classList.remove('hidden'); return; }
+
+      document.getElementById('usersBody').innerHTML = users.map(u => `
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                style="background:linear-gradient(135deg,#00D4FF22,#9B5CFF22);color:#00D4FF;font-family:'Outfit',sans-serif">
+                ${u.full_name?.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?'}
+              </div>
+              <div>
+                <p class="font-semibold text-sm">${u.full_name}</p>
+                <p class="text-xs font-mono" style="color:rgba(240,240,255,0.4)">@${u.username}</p>
+              </div>
+            </div>
+          </td>
+          <td style="color:rgba(240,240,255,0.6);font-size:0.875rem">${u.email}</td>
+          <td>
+            <span class="${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role.toUpperCase()}</span>
+          </td>
+          <td>
+            <span class="${u.is_active ? 'badge-success' : 'badge-danger'}">
+              ${u.is_active ? 'Activo' : 'Inactivo'}
+            </span>
+          </td>
+          <td style="color:rgba(240,240,255,0.4);font-size:0.8rem">
+            ${new Date(u.created_at).toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'})}
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <button onclick="openRoleModal(${u.id}, '${u.full_name.replace(/'/g,"\\'")}', '${u.role}')"
+                class="p-2 rounded-xl text-xs transition-all hover:bg-white/10" style="color:rgba(240,240,255,0.5)" title="Cambiar rol">
+                🔑
+              </button>
+              <button onclick="deactivateUser(${u.id}, '${u.full_name.replace(/'/g,"\\'")}')"
+                class="p-2 rounded-xl text-xs transition-all hover:bg-red-500/10" style="color:rgba(240,240,255,0.5)" title="Desactivar">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      tableEl.classList.remove('hidden');
+
+      // Pagination
+      if (data.total > limit) {
+        document.getElementById('pageInfo').textContent = `${skip+1}–${Math.min(skip+limit, data.total)} de ${data.total}`;
+        document.getElementById('prevBtn').disabled = skip === 0;
+        document.getElementById('nextBtn').disabled = skip + limit >= data.total;
+        pageEl.classList.remove('hidden');
+      }
+
+    } catch (err) {
+      loadEl.innerHTML = `<p style="color:#FF6BA8">Error: ${err.message}</p>
+        <button onclick="loadUsers()" class="btn-ghost mt-4 text-sm">Reintentar</button>`;
+    }
+  }
+
+  // Search
+  document.getElementById('searchBtn')?.addEventListener('click', () => {
+    currentSearch = document.getElementById('searchInput').value.trim();
+    currentPage = 0;
+    loadUsers(0, currentSearch);
+  });
+  document.getElementById('searchInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+
+  // Pagination
+  document.getElementById('prevBtn')?.addEventListener('click', () => {
+    if (currentPage > 0) { currentPage--; loadUsers(currentPage * limit, currentSearch); }
+  });
+  document.getElementById('nextBtn')?.addEventListener('click', () => {
+    currentPage++;
+    loadUsers(currentPage * limit, currentSearch);
+  });
+
+  // Role modal
+  const roleModal = document.getElementById('roleModal');
+
+  window.openRoleModal = function(id, name, currentRole) {
+    selectedUserId = id;
+    document.getElementById('roleModalUser').textContent = `Cambiando rol de ${name} (actual: ${currentRole})`;
+    roleModal.classList.add('active');
+  };
+
+  async function changeRole(newRole) {
+    if (!selectedUserId) return;
+    try {
+      await api.updateUserRole(selectedUserId, newRole);
+      showToast(`Rol cambiado a ${newRole} ✓`, 'success');
+      roleModal.classList.remove('active');
+      loadUsers(currentPage * limit, currentSearch);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  document.getElementById('setUserBtn')?.addEventListener('click', () => changeRole('user'));
+  document.getElementById('setAdminBtn')?.addEventListener('click', () => changeRole('admin'));
+  document.getElementById('closeRoleModal')?.addEventListener('click', () => roleModal.classList.remove('active'));
+  roleModal?.addEventListener('click', e => { if (e.target === roleModal) roleModal.classList.remove('active'); });
+
+  // Deactivate user
+  window.deactivateUser = async function(id, name) {
+    if (!confirm(`¿Desactivar la cuenta de "${name}"? Podrá ser reactivada desde la base de datos.`)) return;
+    try {
+      await api.deleteUser(id);
+      showToast(`Usuario "${name}" desactivado ✓`, 'success');
+      loadUsers(currentPage * limit, currentSearch);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  loadUsers();
+</script>

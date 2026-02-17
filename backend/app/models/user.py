@@ -46,8 +46,8 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     
     # Auditoría - se llenan automáticamente
-    created_at = Column(DateTime, default=func.now(), nullable=False)
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Token de refresh (se guarda para poder invalidarlo)
     refresh_token = Column(String(500), nullable=True)

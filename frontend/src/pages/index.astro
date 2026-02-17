@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Home">
+<div class="min-h-screen relative overflow-hidden">
+
+  <!-- Orbes animados de fondo -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20 animate-float"
+      style="background: radial-gradient(circle, #00D4FF, transparent 70%); animation-delay: 0s;"></div>
+    <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-15 animate-float"
+      style="background: radial-gradient(circle, #9B5CFF, transparent 70%); animation-delay: 3s;"></div>
+    <div class="absolute top-[50%] left-[50%] w-[400px] h-[400px] rounded-full opacity-10 animate-float"
+      style="background: radial-gradient(circle, #FF2D9B, transparent 70%); animation-delay: 6s; transform: translate(-50%,-50%);"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
+          style="background: linear-gradient(135deg,#00D4FF,#9B5CFF);">API</div>
+        <span class="font-display font-bold text-xl">REST</span>
+      </div>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
+        <a href="/login" class="btn-ghost text-sm px-5 py-2 ml-2">Iniciar sesión</a>
+        <a href="/register" class="btn-primary text-sm px-5 py-2 ml-1"><span>Comenzar</span></a>
+      </div>
+      <!-- Mobile menu button -->
+      <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl hover:bg-white/5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="hidden md:hidden px-6 pb-4 space-y-2">
+      <a href="/products" class="block px-4 py-2 rounded-xl hover:bg-white/5 text-sm">Productos</a>
+      <a href="/login" class="block px-4 py-2 rounded-xl hover:bg-white/5 text-sm">Iniciar sesión</a>
+      <a href="/register" class="block btn-primary text-sm text-center mt-2"><span>Comenzar gratis</span></a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="max-w-7xl mx-auto px-6 pt-24 pb-20 text-center page-enter">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-sm font-medium"
+      style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:#00D4FF">
+      <span class="w-2 h-2 rounded-full bg-neon-blue animate-pulse inline-block"></span>
+      API REST Profesional v1.0
+    </div>
+
+    <h1 class="font-display font-black text-6xl md:text-8xl leading-none mb-6" style="letter-spacing:-0.04em">
+      Autenticación<br>
+      <span class="gradient-text">Next Level</span>
+    </h1>
+
+    <p class="text-xl max-w-2xl mx-auto mb-12" style="color:rgba(240,240,255,0.5);line-height:1.7">
+      JWT + Roles + CRUD profesional. Explora una API REST moderna con documentación interactiva, 
+      paginación inteligente y seguridad de nivel empresarial.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="/register" class="btn-primary text-base px-8 py-4"><span>🚀 Crear cuenta gratis</span></a>
+      <a href="/products" class="btn-ghost text-base px-8 py-4">Ver productos</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-6 max-w-2xl mx-auto mt-20 pt-12 border-t" style="border-color:rgba(255,255,255,0.06)">
+      <div>
+        <div class="stat-value gradient-text">JWT</div>
+        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">Autenticación</div>
+      </div>
+      <div>
+        <div class="stat-value" style="background:linear-gradient(135deg,#9B5CFF,#FF2D9B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800">2</div>
+        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">Roles</div>
+      </div>
+      <div>
+        <div class="stat-value gradient-text-green">REST</div>
+        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">API</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass glass-hover p-8 glow-border">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
+          style="background:rgba(0,212,255,0.1);">🔐</div>
+        <h3 class="font-display font-bold text-xl mb-3">Auth Segura</h3>
+        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+          JWT con access + refresh tokens. Hash bcrypt. Refresh automático cuando el token expira.
+        </p>
+      </div>
+      <div class="glass glass-hover p-8 glow-border">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
+          style="background:rgba(155,92,255,0.1);">👤</div>
+        <h3 class="font-display font-bold text-xl mb-3">Roles & Permisos</h3>
+        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+          Admin y User con accesos diferenciados. Cada endpoint protegido según el rol requerido.
+        </p>
+      </div>
+      <div class="glass glass-hover p-8 glow-border">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
+          style="background:rgba(0,255,136,0.1);">⚡</div>
+        <h3 class="font-display font-bold text-xl mb-3">CRUD + Filtros</h3>
+        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+          Paginación, búsqueda, filtros por categoría y precio. Ordenamiento dinámico.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Final -->
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <div class="glass p-12 text-center" style="background:rgba(0,212,255,0.03);border-color:rgba(0,212,255,0.15)">
+      <h2 class="font-display font-black text-4xl md:text-5xl mb-4" style="letter-spacing:-0.03em">
+        Empieza ahora
+      </h2>
+      <p class="mb-8" style="color:rgba(240,240,255,0.5)">Crea tu cuenta y explora todos los endpoints</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/register" class="btn-primary text-base px-8 py-4"><span>🚀 Crear cuenta</span></a>
+        <a href={import.meta.env.PUBLIC_API_URL + '/docs'} target="_blank" class="btn-ghost text-base px-8 py-4">
+          📖 API Docs
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t py-8" style="border-color:rgba(255,255,255,0.06)">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm" style="color:rgba(240,240,255,0.3)">
+      <span>© 2026 API REST — Proyecto de demostración</span>
+      <div class="flex gap-6">
+        <a href="/login" class="hover:text-white transition-colors">Login</a>
+        <a href="/register" class="hover:text-white transition-colors">Registro</a>
+        <a href="/products" class="hover:text-white transition-colors">Productos</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</Layout>
+
+<script>
+  // Mobile menu toggle
+  document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+    document.getElementById('mobileMenu')?.classList.toggle('hidden');
+  });
+
+  // Redirigir si ya está autenticado
+  if (localStorage.getItem('access_token')) {
+    // Mostrar link al dashboard en el nav (opcional)
+  }
+</script>

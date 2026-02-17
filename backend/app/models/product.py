@@ -40,8 +40,8 @@ class Product(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     
     # Auditoría
-    created_at = Column(DateTime, default=func.now(), nullable=False)
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self):
         """Representación del objeto para debugging"""

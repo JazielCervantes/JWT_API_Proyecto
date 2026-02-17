@@ -1,0 +1,36 @@
+---
+import '../styles/global.css';
+const { title = 'API', description = 'API REST Profesional con JWT' } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content={description} />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>{title} — API</title>
+</head>
+<body class="bg-mesh min-h-screen">
+  <slot />
+  <div id="toast-container"></div>
+</body>
+</html>
+
+<script is:inline>
+  // Sistema de notificaciones Toast global
+  window.showToast = function(message, type = 'info', duration = 3500) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(20px)';
+      toast.style.transition = 'all 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  };
+</script>

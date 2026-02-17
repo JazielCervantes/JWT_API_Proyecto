@@ -73,3 +73,5 @@ yarn.lock
 # OS
 Thumbs.db
 .DS_Store
+
+GUIA_COMPLETA_FRONTEND.md

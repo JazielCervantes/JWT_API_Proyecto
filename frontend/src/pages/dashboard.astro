@@ -1,0 +1,217 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Dashboard">
+<div class="min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
+          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
+        <span class="font-display font-bold text-xl">API</span>
+      </div>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(0,212,255,0.1);color:#00D4FF">Dashboard</a>
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
+        <a href="/profile" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Perfil</a>
+        <a id="adminLink" href="/users" class="hidden px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Usuarios</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="userBadge" class="hidden"></span>
+        <button id="logoutBtn" class="btn-danger text-sm px-4 py-2">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- Loading -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="spinner"></div>
+      <p style="color:rgba(240,240,255,0.4);font-size:0.9rem">Cargando dashboard...</p>
+    </div>
+
+    <!-- Content -->
+    <div id="mainContent" class="hidden space-y-8">
+
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 page-enter">
+        <div>
+          <p class="text-sm mb-1" style="color:rgba(240,240,255,0.4)">Bienvenido de vuelta 👋</p>
+          <h1 class="font-display font-black text-4xl" style="letter-spacing:-0.03em" id="welcomeName">—</h1>
+        </div>
+        <div class="flex gap-3">
+          <a href="/products" class="btn-ghost text-sm">📦 Ver productos</a>
+          <a id="adminBtn" href="/users" class="hidden btn-primary text-sm"><span>⚙️ Admin</span></a>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Productos</p>
+          <div class="stat-value gradient-text" id="statProducts">0</div>
+        </div>
+        <div class="glass p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Tu Rol</p>
+          <div id="statRole" class="stat-value" style="font-size:1.4rem;font-family:'Outfit',sans-serif;font-weight:800">—</div>
+        </div>
+        <div class="glass p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Estado</p>
+          <div class="stat-value gradient-text-green" style="font-size:1.6rem">Activo ✓</div>
+        </div>
+        <div class="glass p-6">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">API</p>
+          <div id="statAPI" class="stat-value gradient-text-green" style="font-size:1.6rem">—</div>
+        </div>
+      </div>
+
+      <!-- Productos recientes -->
+      <div class="glass p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-display font-bold text-2xl">Productos Recientes</h2>
+          <a href="/products" class="text-sm hover:underline" style="color:#00D4FF">Ver todos →</a>
+        </div>
+        <div id="recentProducts" class="space-y-3"></div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="glass p-6">
+        <h2 class="font-display font-bold text-2xl mb-5">Acciones Rápidas</h2>
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <a href="/products" class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
+            style="border:1px solid rgba(255,255,255,0.07)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style="background:rgba(0,212,255,0.1)">📦</div>
+            <div>
+              <p class="font-semibold text-sm">Catálogo</p>
+              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Ver productos</p>
+            </div>
+          </a>
+          <a href="/profile" class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
+            style="border:1px solid rgba(255,255,255,0.07)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style="background:rgba(155,92,255,0.1)">👤</div>
+            <div>
+              <p class="font-semibold text-sm">Mi Perfil</p>
+              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Editar cuenta</p>
+            </div>
+          </a>
+          <a href={import.meta.env.PUBLIC_API_URL + '/docs'} target="_blank"
+            class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
+            style="border:1px solid rgba(255,255,255,0.07)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style="background:rgba(0,255,136,0.1)">📖</div>
+            <div>
+              <p class="font-semibold text-sm">API Docs</p>
+              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Swagger UI</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</Layout>
+
+<script>
+  import { requireAuth, getUser, isAdmin } from '../lib/auth.js';
+  import api from '../lib/api.js';
+
+  requireAuth();
+
+  const user = getUser();
+  if (!user) window.location.href = '/login';
+
+  // Setup nav
+  if (isAdmin()) {
+    document.getElementById('adminLink')?.classList.remove('hidden');
+    document.getElementById('adminBtn')?.classList.remove('hidden');
+  }
+
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await api.logout();
+  });
+
+  // Render user info
+  document.getElementById('welcomeName').textContent = user?.full_name || '—';
+  
+  const badge = document.getElementById('userBadge');
+  badge.className = user?.role === 'admin' ? 'badge-admin' : 'badge-user';
+  badge.textContent = user?.role?.toUpperCase();
+  badge.classList.remove('hidden');
+
+  document.getElementById('statRole').textContent = user?.role === 'admin' ? '👑 Admin' : '👤 User';
+
+  // Counter animation
+  function animateCount(el, target, duration = 800) {
+    const start = Date.now();
+    const update = () => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased);
+      if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  // Load data
+  async function loadDashboard() {
+    try {
+      // Check API status
+      const health = await fetch(import.meta.env.PUBLIC_API_URL + '/health');
+      document.getElementById('statAPI').textContent = health.ok ? 'Online ✓' : 'Error ✗';
+
+      // Load products
+      const data = await api.getProducts({ limit: 5 });
+      
+      animateCount(document.getElementById('statProducts'), data.total);
+
+      const recentDiv = document.getElementById('recentProducts');
+      if (data.products.length > 0) {
+        recentDiv.innerHTML = data.products.map(p => `
+          <div class="flex items-center justify-between p-4 rounded-xl transition-all hover:bg-white/5" 
+            style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                style="background:rgba(0,212,255,0.08)">📦</div>
+              <div>
+                <p class="font-semibold text-sm">${p.name}</p>
+                <p class="text-xs" style="color:rgba(240,240,255,0.4)">${p.category || 'Sin categoría'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="font-display font-bold" style="color:#00D4FF">$${p.price}</span>
+              <span class="${p.stock > 0 ? 'badge-success' : 'badge-danger'}">
+                ${p.stock > 0 ? `${p.stock} uds` : 'Agotado'}
+              </span>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        recentDiv.innerHTML = `
+          <div class="text-center py-8" style="color:rgba(240,240,255,0.3)">
+            <p class="text-4xl mb-2">📦</p>
+            <p>No hay productos aún. 
+              <a href="/products" style="color:#00D4FF" class="hover:underline">Créa uno</a>
+            </p>
+          </div>`;
+      }
+
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('mainContent').classList.remove('hidden');
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loadingState').innerHTML = `
+        <p style="color:#FF6BA8">Error al cargar. Verifica que el backend esté corriendo.</p>
+        <button onclick="location.reload()" class="btn-ghost mt-4 text-sm">Reintentar</button>`;
+    }
+  }
+
+  loadDashboard();
+</script>
