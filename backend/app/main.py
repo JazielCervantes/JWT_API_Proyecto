@@ -86,6 +86,9 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+origins = [
+    "https://jwt-api-frontend.vercel.app",  # tu frontend en producción
+]
 
 # Configurar CORS
 app.add_middleware(
