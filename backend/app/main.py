@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import get_db, init_db
-from app.routes import auth, users, products
+
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
 
@@ -93,7 +93,7 @@ origins = [
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.origins_list,  # Lista de orígenes permitidos
+    allow_origins=origins,  # Lista de orígenes permitidos
     allow_credentials=True,
     allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permite todos los headers
@@ -148,6 +148,7 @@ async def general_exception_handler(request: Request, exc: Exception):
             }
         )
 
+from app.routes import auth, users, products
 
 # Incluir rutas
 app.include_router(auth.router, prefix="/api")
