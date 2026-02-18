@@ -417,4 +417,4 @@ Configurar en **Settings** → **Environment Variables** → Seleccionar el ambi
 
 ¡Tu frontend ahora está en producción! 🎉
 
-**URL de ejemplo**: https://jwt-api-frontend.vercel.app
+**URL de ejemplo**: https://jwt-api-frontend.vercel.app/

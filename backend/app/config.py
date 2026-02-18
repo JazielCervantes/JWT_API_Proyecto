@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # CORS - Lista de orígenes permitidos para hacer peticiones
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:4321"
+    ALLOWED_ORIGINS: str = "https://jwt-api-frontend.vercel.app/"
     
     # Admin por defecto
     ADMIN_EMAIL: str = "admin@ejemplo.com"
