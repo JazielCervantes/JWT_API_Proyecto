@@ -18,6 +18,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+seed_products.py
 
 # Virtual Environment
 venv/
