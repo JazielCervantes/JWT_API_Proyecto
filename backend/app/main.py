@@ -2,6 +2,7 @@
 Aplicación principal FastAPI.
 Punto de entrada de la API REST.
 """
+import time
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -11,6 +12,8 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import get_db, init_db
+from app.core import logger, AppException
+from app.core.constants import ERROR_MESSAGES
 
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
@@ -23,23 +26,67 @@ async def lifespan(app: FastAPI):
     Se ejecuta al inicio y al final de la aplicación.
     """
     # Código de inicio
-    print("🚀 Iniciando aplicación...")
+    logger.info("🚀 Iniciando aplicación...")
     
     # Inicializar base de datos
-    print("📦 Inicializando base de datos...")
+    logger.info("📦 Inicializando base de datos...")
     init_db()
     
     # Crear usuario admin si no existe
-    print("👤 Verificando usuario administrador...")
+    logger.info("👤 Verificando usuario administrador...")
     create_admin_if_not_exists()
     
-    print("✅ Aplicación iniciada correctamente")
-    print(f"📖 Documentación disponible en: http://localhost:8000/docs")
+    logger.info("✅ Aplicación iniciada correctamente")
+    logger.info(f"📖 Documentación disponible en: http://localhost:8000/docs")
     
     yield
     
     # Código de limpieza (al cerrar)
-    print("👋 Cerrando aplicación...")
+    logger.info("👋 Cerrando aplicación...")
+
+
+async def logging_middleware(request: Request, call_next):
+    """
+    Middleware para loguear todas las requests y responses.
+    Registra método, ruta, status code y duración.
+    """
+    start_time = time.time()
+    
+    # Información de la request
+    method = request.method
+    path = request.url.path
+    
+    try:
+        response = await call_next(request)
+        duration_ms = int((time.time() - start_time) * 1000)
+        
+        # Loguear con contexto
+        logger.info(
+            f"HTTP {method} {path}",
+            extra={
+                "method": method,
+                "path": path,
+                "status": response.status_code,
+                "duration_ms": duration_ms,
+                "ip": request.client.host if request.client else "unknown",
+            }
+        )
+        
+        return response
+    
+    except Exception as e:
+        duration_ms = int((time.time() - start_time) * 1000)
+        logger.error(
+            f"HTTP {method} {path} - ERROR",
+            extra={
+                "method": method,
+                "path": path,
+                "error": str(e),
+                "duration_ms": duration_ms,
+                "ip": request.client.host if request.client else "unknown",
+            }
+        )
+        raise
 
 
 # Crear instancia de FastAPI
@@ -99,13 +146,33 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los headers
 )
 
+# ✅ Agregar middleware de logging (debe estar DESPUÉS de CORS en el stack)
+app.middleware("http")(logging_middleware)
+
+
+# ✅ Manejador para AppException personalizada
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    """
+    Maneja excepciones de aplicación personalizadas.
+    Retorna formato consistente: error code, mensaje, status_code.
+    """
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.code,
+            "message": exc.message,
+            "data": exc.data if exc.data else None
+        }
+    )
+
 
 # Manejador de errores de validación
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """
     Maneja errores de validación de Pydantic.
-    Retorna un formato más amigable de errores.
+    Retorna un formato más amigable de errores con logueo.
     """
     errors = []
     for error in exc.errors():
@@ -115,10 +182,19 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "type": error["type"]
         })
     
+    logger.warning(
+        f"Validation error on {request.method} {request.url.path}",
+        extra={
+            "errors": len(errors),
+            "ip": request.client.host if request.client else "unknown",
+        }
+    )
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
-            "detail": "Error de validación",
+            "error": "VALIDATION_ERROR",
+            "message": "Error de validación",
             "errors": errors
         }
     )
@@ -128,15 +204,24 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """
-    Maneja errores no capturados.
+    Maneja errores no capturados (fallback).
     En producción, no mostrar detalles del error.
     """
+    logger.error(
+        f"Unhandled exception on {request.method} {request.url.path}: {str(exc)}",
+        extra={
+            "error_type": type(exc).__name__,
+            "ip": request.client.host if request.client else "unknown",
+        }
+    )
+    
     if settings.DEBUG:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
-                "detail": "Error interno del servidor",
-                "error": str(exc),
+                "error": "INTERNAL_SERVER_ERROR",
+                "message": "Error interno del servidor",
+                "detail": str(exc),
                 "type": type(exc).__name__
             }
         )
@@ -144,7 +229,8 @@ async def general_exception_handler(request: Request, exc: Exception):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
-                "detail": "Error interno del servidor"
+                "error": "INTERNAL_SERVER_ERROR",
+                "message": "Error interno del servidor"
             }
         )
 

@@ -5,13 +5,20 @@ Funciones que se inyectan en los endpoints para:
 - Verificar permisos
 - Validar tokens
 """
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.utils.security import decode_token
+from app.core import (
+    InvalidToken,
+    UserNotFound,
+    UserInactive,
+    PermissionDenied,
+    logger,
+)
 
 # Esquema de seguridad Bearer
 security = HTTPBearer()
@@ -35,7 +42,9 @@ async def get_current_user(
         Usuario autenticado
     
     Raises:
-        HTTPException: Si el token es inválido o el usuario no existe
+        InvalidToken: Si el token es inválido u expirado
+        UserNotFound: Si el usuario no existe
+        UserInactive: Si el usuario está inactivo
     
     Uso:
         @app.get("/protected")
@@ -49,46 +58,32 @@ async def get_current_user(
     payload = decode_token(token)
     
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        logger.warning("Intento de acceso con token inválido o expirado")
+        raise InvalidToken(reason="Token expirado o inválido")
     
     # Verificar que sea un access token
     if payload.get("token_type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Tipo de token inválido",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        logger.warning("Intento de acceso con tipo de token incorrecto")
+        raise InvalidToken(reason="Tipo de token incorrecto")
     
     # Obtener ID del usuario desde el token
     user_id: Optional[int] = payload.get("user_id")
     
     if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        logger.warning("Token sin user_id")
+        raise InvalidToken()
     
     # Buscar usuario en la base de datos
     user = db.query(User).filter(User.id == user_id).first()
     
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        logger.warning(f"Usuario no encontrado (ID: {user_id})")
+        raise UserNotFound()
     
     # Verificar que el usuario esté activo
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo",
-        )
+        logger.warning(f"Intento de acceso con usuario inactivo (ID: {user.id})")
+        raise UserInactive()
     
     return user
 
@@ -99,7 +94,7 @@ async def get_current_active_user(
     """
     Verifica que el usuario actual esté activo.
     
-    Esta es una capa adicional de validación.
+    Esta es una capa adicional de validación (redundante con get_current_user).
     
     Args:
         current_user: Usuario actual
@@ -108,13 +103,11 @@ async def get_current_active_user(
         Usuario activo
     
     Raises:
-        HTTPException: Si el usuario no está activo
+        UserInactive: Si el usuario no está activo
     """
     if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo"
-        )
+        logger.warning(f"Usuario inactivo: {current_user.username}")
+        raise UserInactive()
     return current_user
 
 
@@ -140,13 +133,11 @@ async def require_admin(
         Usuario administrador
     
     Raises:
-        HTTPException: Si el usuario no es admin
+        PermissionDenied: Si el usuario no es admin
     """
     if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Se requieren permisos de administrador"
-        )
+        logger.warning(f"Intento de acceso admin sin permiso: {current_user.username}")
+        raise PermissionDenied(reason="Se requieren permisos de administrador")
     return current_user
 
 

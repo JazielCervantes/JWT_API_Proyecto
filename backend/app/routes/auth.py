@@ -2,7 +2,7 @@
 Rutas de autenticación.
 Endpoints para registro, login, refresh y logout.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.user import UserCreate, UserResponse
@@ -14,6 +14,7 @@ from app.schemas.auth import (
 )
 from app.services.auth_service import AuthService
 from app.utils.dependencies import get_current_user
+from app.core import logger
 from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
