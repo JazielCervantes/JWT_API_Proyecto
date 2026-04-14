@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
+const apiDocsUrl = (import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs';
 ---
 <Layout title="API REST — Autenticación Moderna">
 <div class="min-h-screen">
@@ -19,7 +20,7 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
 
       <div class="hidden md:flex items-center gap-1">
         <a href="/products" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150">Productos</a>
-        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150">API Docs</a>
+        <a href={apiDocsUrl} target="_blank" rel="noopener" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150">API Docs</a>
       </div>
 
       <div class="flex items-center gap-2">
@@ -154,7 +155,7 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
           </svg>
         </a>
-        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200">
+        <a href={apiDocsUrl} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200">
           API Docs
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
