@@ -92,6 +92,7 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
 
 <script>
   import api from '../lib/api.js';
+  import { saveUser } from '../lib/auth.js';
 
   const form = document.getElementById('registerForm');
   const errorAlert = document.getElementById('errorAlert');
@@ -150,10 +151,14 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
 
     try {
       await api.register(userData);
-      successAlert.textContent = '✓ ¡Cuenta creada! Redirigiendo al login...';
+      // Auto-login: iniciar sesión automáticamente con las mismas credenciales
+      await api.login(userData.username, userData.password);
+      const user = await api.getCurrentUser();
+      saveUser(user);
+      successAlert.textContent = '✓ ¡Cuenta creada! Ingresando...';
       successAlert.classList.remove('hidden');
-      showToast('Cuenta creada exitosamente', 'success');
-      setTimeout(() => window.location.href = '/login', 2000);
+      showToast(`¡Bienvenido, ${user.full_name}!`, 'success');
+      setTimeout(() => window.location.href = '/dashboard', 1200);
     } catch (err) {
       errorAlert.textContent = err.message || 'Error al crear la cuenta';
       errorAlert.classList.remove('hidden');
