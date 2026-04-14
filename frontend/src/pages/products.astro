@@ -144,10 +144,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const limit = 9;
   let currentSearch = '';
   let currentSort = 'created_at';
-  let editingId = null;
+  let editingId: number | null = null;
 
   // XSS-safe text helper
-  function esc(str) {
+  function esc(str: string) {
     const d = document.createElement('div');
     d.textContent = str;
     return d.innerHTML;
@@ -158,8 +158,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     try {
       const categorias = await api.getCategories();
       const marcas = await api.getBrands();
-      document.getElementById('categoriasList').innerHTML = categorias.map(cat => `<option value="${esc(cat)}">`).join('');
-      document.getElementById('marcasList').innerHTML = marcas.map(m => `<option value="${esc(m)}">`).join('');
+      document.getElementById('categoriasList')!.innerHTML = categorias.map((cat: string) => `<option value="${esc(cat)}">`).join('');
+      document.getElementById('marcasList')!.innerHTML = marcas.map((m: string) => `<option value="${esc(m)}">`).join('');
     } catch (err) {
       console.error('Error cargando categorías/marcas:', err);
     }
@@ -195,7 +195,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       name: { sort_by: 'name', order: 'asc' },
       created_at: { sort_by: 'created_at', order: 'desc' }
     };
-    const sortParams = sortMap[sort] || {};
+    const sortParams = (sortMap as Record<string, any>)[sort] || {};
 
     try {
       const data = await api.getProducts({ skip, limit, search, ...sortParams });
@@ -206,7 +206,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         return;
       }
 
-      gridEl.innerHTML = data.products.map(p => `
+      gridEl.innerHTML = data.products.map((p: any) => `
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-200 group">
           <div class="flex justify-between items-start mb-4">
             <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
@@ -245,10 +245,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       // Pagination
       const total = data.total;
       document.getElementById('pageInfo').textContent = `${skip + 1}–${Math.min(skip + limit, total)} de ${total}`;
-      document.getElementById('prevBtn').disabled = skip === 0;
-      document.getElementById('nextBtn').disabled = skip + limit >= total;
+      (document.getElementById('prevBtn') as HTMLButtonElement).disabled = skip === 0;
+      (document.getElementById('nextBtn') as HTMLButtonElement).disabled = skip + limit >= total;
       paginEl.classList.remove('hidden');
-    } catch (err) {
+    } catch (err: any) {
       loadingEl.innerHTML = `
         <div class="col-span-full text-center py-12">
           <p class="text-rose-600 dark:text-rose-400 font-medium mb-4">Error: ${esc(err.message)}</p>
@@ -259,9 +259,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
   // Search
   document.getElementById('searchBtn')?.addEventListener('click', () => {
-    currentSearch = document.getElementById('searchInput').value.trim();
+    currentSearch = (document.getElementById('searchInput') as HTMLInputElement).value.trim();
     currentPage = 0;
-    currentSort = document.getElementById('sortSelect').value;
+    currentSort = (document.getElementById('sortSelect') as HTMLSelectElement).value;
     loadProducts(0, currentSearch, currentSort);
   });
   document.getElementById('searchInput')?.addEventListener('keydown', e => {
@@ -281,8 +281,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   });
 
   // Modal
-  const modal = document.getElementById('productModal');
-  const form = document.getElementById('productForm');
+  const modal = document.getElementById('productModal')!;
+  const form = document.getElementById('productForm') as HTMLFormElement;
 
   function openModal(title = 'Nuevo Producto') {
     document.getElementById('modalTitle').textContent = title;
@@ -308,26 +308,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   document.getElementById('modalBackdrop')?.addEventListener('click', closeModalFn);
 
   // Edit product
-  window.editProduct = function(id, name, price, stock, category, brand, description) {
+  (window as any).editProduct = function(id: number, name: string, price: number, stock: number, category: string, brand: string, description: string) {
     editingId = id;
-    document.getElementById('pName').value = name;
-    document.getElementById('pPrice').value = price;
-    document.getElementById('pStock').value = stock;
-    document.getElementById('pCategory').value = category;
-    document.getElementById('pBrand').value = brand;
-    document.getElementById('pDesc').value = description;
+    (document.getElementById('pName') as HTMLInputElement).value = name;
+    (document.getElementById('pPrice') as HTMLInputElement).value = String(price);
+    (document.getElementById('pStock') as HTMLInputElement).value = String(stock);
+    (document.getElementById('pCategory') as HTMLInputElement).value = category;
+    (document.getElementById('pBrand') as HTMLInputElement).value = brand;
+    (document.getElementById('pDesc') as HTMLTextAreaElement).value = description;
     document.getElementById('saveBtnText').textContent = 'Guardar cambios';
     openModal('Editar Producto');
   };
 
   // Delete product
-  window.deleteProduct = async function(id, name) {
+  (window as any).deleteProduct = async function(id: number, name: string) {
     if (!confirm(`¿Eliminar "${name}"?`)) return;
     try {
       await api.deleteProduct(id);
       showToast(`"${name}" eliminado`, 'success');
       loadProducts(currentPage * limit, currentSearch, currentSort);
-    } catch (err) {
+    } catch (err: any) {
       showToast(err.message, 'error');
     }
   };
@@ -337,16 +337,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     e.preventDefault();
     const errEl = document.getElementById('modalError');
     errEl.classList.add('hidden');
-    document.getElementById('saveBtnText').textContent = 'Guardando...';
-    document.getElementById('saveBtn').disabled = true;
+    document.getElementById('saveBtnText')!.textContent = 'Guardando...';
+    (document.getElementById('saveBtn') as HTMLButtonElement).disabled = true;
 
     const productData = {
-      name: document.getElementById('pName').value,
-      price: parseFloat(document.getElementById('pPrice').value),
-      stock: parseInt(document.getElementById('pStock').value) || 0,
-      category: document.getElementById('pCategory').value || null,
-      brand: document.getElementById('pBrand').value || null,
-      description: document.getElementById('pDesc').value || null,
+      name: (document.getElementById('pName') as HTMLInputElement).value,
+      price: parseFloat((document.getElementById('pPrice') as HTMLInputElement).value),
+      stock: parseInt((document.getElementById('pStock') as HTMLInputElement).value) || 0,
+      category: (document.getElementById('pCategory') as HTMLInputElement).value || null,
+      brand: (document.getElementById('pBrand') as HTMLInputElement).value || null,
+      description: (document.getElementById('pDesc') as HTMLTextAreaElement).value || null,
     };
 
     try {
@@ -359,11 +359,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       }
       closeModalFn();
       loadProducts(currentPage * limit, currentSearch, currentSort);
-    } catch (err) {
+    } catch (err: any) {
       errEl.textContent = err.message;
       errEl.classList.remove('hidden');
-      document.getElementById('saveBtnText').textContent = editingId ? 'Guardar cambios' : 'Crear producto';
-      document.getElementById('saveBtn').disabled = false;
+      document.getElementById('saveBtnText')!.textContent = editingId ? 'Guardar cambios' : 'Crear producto';
+      (document.getElementById('saveBtn') as HTMLButtonElement).disabled = false;
     }
   });
 

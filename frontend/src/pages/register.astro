@@ -94,12 +94,12 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
   import api from '../lib/api.js';
   import { saveUser } from '../lib/auth.js';
 
-  const form = document.getElementById('registerForm');
-  const errorAlert = document.getElementById('errorAlert');
-  const successAlert = document.getElementById('successAlert');
-  const submitBtn = document.getElementById('submitBtn');
-  const btnText = document.getElementById('btnText');
-  const passInput = document.getElementById('passInput');
+  const form = document.getElementById('registerForm') as HTMLFormElement;
+  const errorAlert = document.getElementById('errorAlert')!;
+  const successAlert = document.getElementById('successAlert')!;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const btnText = document.getElementById('btnText')!;
+  const passInput = document.getElementById('passInput') as HTMLInputElement;
 
   // Password strength
   passInput?.addEventListener('input', () => {
@@ -121,7 +121,7 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
     label.style.color = count > 0 ? colors[count - 1] : '';
   });
 
-  function setLoading(loading) {
+  function setLoading(loading: boolean) {
     submitBtn.disabled = loading;
     btnText.textContent = loading ? 'Creando cuenta...' : 'Crear cuenta';
   }
@@ -134,10 +134,10 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
 
     const fd = new FormData(form);
     const userData = {
-      full_name: fd.get('full_name'),
-      email: fd.get('email'),
-      username: fd.get('username'),
-      password: fd.get('password'),
+      full_name: fd.get('full_name') as string,
+      email: fd.get('email') as string,
+      username: fd.get('username') as string,
+      password: fd.get('password') as string,
     };
 
     // Validar contraseña antes de enviar
@@ -159,7 +159,7 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue';
       successAlert.classList.remove('hidden');
       showToast(`¡Bienvenido, ${user.full_name}!`, 'success');
       setTimeout(() => window.location.href = '/dashboard', 1200);
-    } catch (err) {
+    } catch (err: any) {
       errorAlert.textContent = err.message || 'Error al crear la cuenta';
       errorAlert.classList.remove('hidden');
       setLoading(false);
