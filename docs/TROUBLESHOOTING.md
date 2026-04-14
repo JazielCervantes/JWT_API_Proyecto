@@ -1,488 +1,174 @@
-# 🔧 Solución de Problemas Comunes
+# Solución de Problemas
+
+Problemas comunes y cómo resolverlos.
 
 ---
 
-## 🗄️ Problemas con MySQL
+## Base de datos
 
-### ❌ "Can't connect to MySQL server on 'localhost:3306'"
+**`Can't connect to MySQL server`**
 
-**Causa:** MySQL no está corriendo
+Verifica que el servicio MySQL está activo y que la URL en `.env` es correcta:
 
-**Solución:**
-
-**Windows:**
-```cmd
-net start MySQL80
-# O busca "Services" en Windows → MySQL80 → Start
+```
+DATABASE_URL=mysql+pymysql://user:password@localhost:3306/db_name
 ```
 
-**macOS:**
-```bash
-brew services start mysql
-# O:
-mysql.server start
-```
+Asegúrate de usar el prefijo `mysql+pymysql://` y no `mysql://` a secas. SQLAlchemy necesita el driver explícito.
 
-**Linux:**
-```bash
-sudo systemctl start mysql
-# O:
-sudo service mysql start
-```
+**`Access denied for user`**
 
-**Verificar:**
-```bash
-mysql -u root -p
-# Si pedís password y entras → ✅ Mysqli
-```
+El usuario no tiene permisos sobre la base de datos. Ejecuta esto en MySQL como root:
 
-### ❌ "Access denied for user 'root'@'localhost'"
-
-**Causa:** Contraseña de MySQL incorrecta
-
-**Solución:**
-
-1. Verifica tu password en `.env`:
-```env
-# Debe ser:
-DATABASE_URL=mysql+pymysql://root:AQUI_TU_PASSWORD@localhost:3306/jwt_api_db
-```
-
-2. Si olvidaste el password:
-
-**Windows:** Busca "MySQL 8.0 Command Line Client"
-
-**macOS/Linux:**
-```bash
-sudo mysql
-
-# Dentro de MySQL:
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'nueva_password';
+```sql
+GRANT ALL PRIVILEGES ON db_name.* TO 'user'@'localhost';
 FLUSH PRIVILEGES;
-exit
 ```
 
-3. Actualiza `.env` con la nueva contraseña
+**`Field 'is_active' doesn't have a default value`**
 
-### ❌ "Field 'created_at' doesn't have a default value"
+Estás insertando un registro en la tabla de productos sin ese campo. Incluye `is_active=1` explícitamente en el INSERT, o añade un valor por defecto en la tabla:
 
-**Causa:** Tablas viejas sin valores por defecto
-
-**Solución:**
-
-```bash
-# Borra y recrea las tablas:
-cd backend
-python -m app.database
-
-# Selecciona "y" para confirmar
-```
-
-O manualmente en MySQL:
 ```sql
-ALTER TABLE users 
-MODIFY created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-MODIFY updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
-ALTER TABLE products 
-MODIFY created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-MODIFY updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE products MODIFY COLUMN is_active BOOLEAN DEFAULT 1;
 ```
 
-### ❌ "Database does not exist: jwt_api_db"
+**`Unknown database`**
 
-**Causa:** No creaste la BD
+La base de datos no existe. Créala:
 
-**Solución:**
-```bash
-mysql -u root -p -e "CREATE DATABASE jwt_api_db;"
-```
-
-O desde MySQL Workbench:
 ```sql
-CREATE DATABASE jwt_api_db;
+CREATE DATABASE jwt_api CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ---
 
-## 🐍 Problemas Python/Backend
+## Errores JWT
 
-### ❌ "No module named 'app'"
+**`401 Unauthorized` / `Could not validate credentials`**
 
-**Causa:** Estás en el directorio equivocado
+El access token expiró (dura 15 minutos por defecto). Llama a `POST /api/v1/auth/refresh` para obtener uno nuevo usando el refresh token guardado en la cookie `HttpOnly`.
 
-**Solución:**
-```bash
-# Asegúrate de estar en backend/
-cd jwt-api-project/backend
+Si tampoco tienes refresh token válido, el usuario tiene que iniciar sesión de nuevo.
 
-# Luego:
-uvicorn app.main:app --reload
+**`Token signature verification failed`**
+
+La `SECRET_KEY` cambió entre reinicios. Si está vacía en `.env`, FastAPI genera una aleatoria al arrancar — todos los tokens anteriores quedan inválidos. Define una clave fija en `.env`:
+
+```
+SECRET_KEY=una-clave-larga-random-que-no-cambie
 ```
 
-### ❌ "ModuleNotFoundError: No module named 'fastapi'"
-
-**Causa:** Entorno virtual no activado o dependencias no instaladas
-
-**Solución:**
-```bash
-cd backend
-
-# 1. Activar entorno virtual
-# Windows:
-venv\Scripts\activate
-
-# macOS/Linux:
-source venv/bin/activate
-
-# 2. Verificar que esté activo (deberías ver (venv) en la terminal)
-
-# 3. Instalar dependencias
-pip install -r requirements.txt
-```
-
-### ❌ "Address already in use"
-
-**Causa:** El puerto 8000 ya está siendo usado
-
-**Solución:**
-
-**Opción 1: Matar el proceso**
-```bash
-# Windows (PowerShell):
-Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process
-
-# Mac/Linux:
-lsof -ti:8000 | xargs kill -9
-```
-
-**Opción 2: Usar otro puerto**
-```bash
-uvicorn app.main:app --reload --port 8001
-```
-
-### ❌ "ERROR:  Unauthorized access for user 'root'"
-
-**Causa:** Credenciales MySQL incorrectas
-
-**Solución:** Ver sección "Access denied" arriba
-
-### ❌ "ImportError: cannot import name 'Session' from 'sqlalchemy.orm'"
-
-**Causa:** Versión de SQLAlchemy incompatible
-
-**Solución:**
-```bash
-pip install sqlalchemy==2.0.23
-pip install -r requirements.txt --upgrade
-```
-
-### ❌ Backend inicia pero endpoints retornan 500
-
-**Causa:** Error en el código
-
-**Solución:**
-1. Mira los logs en la terminal donde corre el backend
-2. Verifica que las tablas existan: `python -m app.database`
-3. Verifica que MySQL esté corriendo
-4. Revisa `.env` para variables faltantes
-
----
-
-## 🎨 Problemas Node/Frontend
-
-### ❌ "npm: command not found"
-
-**Causa:** Node.js no está instalado
-
-**Solución:**
-1. Descarga de https://nodejs.org (versión LTS)
-2. Instala y reinicia tu terminal
-3. Verifica: `npm --version` (deberías ver: v18+)
-
-### ❌ "Address already in use :4321"
-
-**Causa:** Astro ya está corriendo en ese puerto
-
-**Solución:**
-
-**Opción 1: Matar proceso**
-```bash
-# Windows (PowerShell):
-Get-Process -Id (Get-NetTCPConnection -LocalPort 4321).OwningProcess | Stop-Process
-
-# Mac/Linux:
-lsof -ti:4321 | xargs kill -9
-```
-
-**Opción 2: Otro puerto en astro.config.mjs**
-```javascript
-export default defineConfig({
-  server: { port: 4322 }
-});
-```
-
-### ❌ "Cannot find module 'astro'"
-
-**Causa:** npm dependencies no instaladas
-
-**Solución:**
-```bash
-cd frontend
-npm install
-
-# Si aún falla:
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### ❌ Frontend no se conecta al backend (CORS error)
-
-**Síntoma:** `Access to XMLHttpRequest blocked...`
-
-**Causa:** Backend CORS no permite origen del frontend
-
-**Solución:**
-
-1. Edita `backend/.env`:
-```env
-ALLOWED_ORIGINS=http://localhost:4321,http://localhost:3000
-```
-
-2. Reinicia backend:
-```bash
-# Ctrl + C para detener
-# Luego:
-uvicorn app.main:app --reload
-```
-
-3. Si usas production, actualiza CORS en variables de Railway
-
----
-
-## 🌐 Problemas de Red/Conectividad
-
-### ❌ "Connection refused" al conectarse a backend
-
-**Causa:** Backend no está corriendo
-
-**Solución:**
-```bash
-cd backend
-uvicorn app.main:app --reload
-
-# Verifica que veas:
-# INFO:     Uvicorn running on http://0.0.0.0:8000
-```
-
-### ❌ Frontend ve "Cannot load from localhost:8000"
-
-**Causa:** Firewall bloqueando puerto 8000
-
-**Solución:**
-
-**Windows Firewall:**
-1. Abre Windows Defender Firewall
-2. Click **Allow an app through firewall**
-3. Click **Change settings**
-4. Click **Allow another app**
-5. Busca y agrega `python.exe`
-6. OK
-
-**macOS:**
-```bash
-# Terminal pide permiso automáticamente la primera vez
-# Ingresa tu password
-```
-
----
-
-## 🚀 Problemas de Despliegue
-
-### ❌ Build failed en Vercel
-
-**Síntoma:** Vercel log muestra error de build
-
-**Solución:**
-1. Verifica que `npm run build` funciona localmente:
-```bash
-cd frontend
-npm run build
-
-# Si funciona: ✅
-# Si falla: verifica el error
-```
-
-2. En Vercel dashboard:
-   - Root Directory: debe ser `frontend/`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-
-3. Redeploy:
-   - Proyecto → **Deployments** → botón **Redeploy**
-
-### ❌ Backend no responde en Railway
-
-**Síntoma:** Railway deployment falla
-
-**Solución:**
-1. Ve a Railway dashboard
-2. Click tu proyecto backend
-3. **View Logs**
-4. Busca errores específicos
-5. Verifica:
-   - [ ] DATABASE_URL está configurado
-   - [ ] SECRET_KEY no está vacío
-   - [ ] Port está correcto ($PORT)
-
-6. Redeploy:
-   - Click **Redeploy**
-
-### ❌ CORS error después de deploy
-
-**Síntoma:** Frontend en production no puede llamar backend
-
-**Causa:** ALLOWED_ORIGINS no incluye tu dominio
-
-**Solución:**
-1. Railway dashboard → Backend
-2. **Variables** 
-3. Edita `ALLOWED_ORIGINS`:
-```env
-ALLOWED_ORIGINS=https://tu-proyecto.vercel.app,https://*.vercel.app
-```
-4. **Save** (redeploy automático)
-
-### ❌ Login falla después de deploy
-
-**Síntoma:** Login devuelve 401 error
-
-**Causa:** SECRET_KEY diferente entre deploys
-
-**Solución:**
-1. Railway → Backend → **Variables**
-2. Verifica que `SECRET_KEY` sea el MISMO que usaste localmente
-3. Si cambió, genera uno nuevo:
+Genera una buena clave con:
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
-4. Redeploy
 
 ---
 
-## 🆘 Problemas No Listados
+## CORS
 
-### Debug Mode
+**`Access to fetch at '...' has been blocked by CORS policy`**
 
-**Para el Backend:**
-```env
-# En .env:
-DEBUG=True
-```
+1. Verifica el valor de `ALLOWED_ORIGINS` en Railway (o tu `.env`). Debe ser exactamente la URL del frontend **sin barra final**:
+   ```
+   ALLOWED_ORIGINS=https://jwt-api-proyecto-v20.vercel.app
+   ```
+   Una barra al final (`...app/`) es suficiente para que el navegador rechace la petición.
 
-Verás queries SQL en la consola:
-```
-SELECT * FROM users WHERE email = 'test@ejemplo.com'
-```
-
-**Para el Frontend:**
-```javascript
-// En browser console (F12):
-localStorage.getItem('refresh_token')
-sessionStorage.getItem('access_token')
-```
-
-### Ver Logs en Tiempo Real
-
-**Backend:**
-```bash
-# La terminal donde corre uvicorn muestra logs automáticamente
-```
-
-**Frontend:**
-```bash
-# Terminal donde corre npm run dev
-# Muestra HMR y errors
-```
-
-**Railway Production:**
-```bash
-# Railway dashboard → Backend → View Logs
-```
-
-**Vercel Production:**
-```bash
-# Vercel dashboard → Deployments → View Build Logs
-```
-
----
-
-##  💡 Pasos para Debuggear Cualquier Error
-
-### 1. Lee el error completo
-"No copies solo la primera línea, lee TODO el traceback"
-
-### 2. Identifica dónde ocurre
-¿En backend? ¿En frontend? ¿En deployment?
-
-### 3. Aísla el problema
-¿Es replicable? ¿Ocurre siempre o a veces?
-
-### 4. Busca en Google
-Copia el error exacto + tecnología:
-```
-"Database connection failed" "sqlalchemy" "mysql"
-```
-
-### 5. Revisa .env
-"El 80% de los problemas son .env mal configurado"
-
-### 6. Reinicia todo
-```bash
-# Backend:
-Ctrl + C
-# Borra:
-rm -rf .pytest_cache __pycache__
-# Reinicia
-
-# Frontend:
-Ctrl + C
-# Limpia:
-npm cache clean --force
-# Reinstala:
-npm install
-npm run dev
-```
-
----
-
-##  📞 Si Nada Funciona
-
-1. Borra `venv/` y `node_modules/`
-2. Reinstala todo desde cero:
-   ```bash
-   cd backend
-   python -m venv venv
-   venv\Scripts\activate
-   pip install -r requirements.txt
-   
-   cd ../frontend
-   npm install
+2. Si el frontend está en otra URL (custom domain, preview deploy), añade esa URL separada por comas:
+   ```
+   ALLOWED_ORIGINS=https://tudominio.com,https://preview.vercel.app
    ```
 
-3. Recrea la BD:
-   ```sql
-   DROP DATABASE jwt_api_db;
-   CREATE DATABASE jwt_api_db;
-   ```
-   ```bash
-   python -m app.database
-   ```
-
-4. Intenta de nuevo
-
-Si aún falla, revisa [docs/DEVELOPMENT.md](DEVELOPMENT.md) o abre un issue en GitHub.
+3. En desarrollo local el frontend corre en `http://localhost:4321` por defecto. Ese origen ya está incluido en los defaults del backend para `DEBUG=True`.
 
 ---
 
-**Buena suerte! 🍀**
+## Frontend (Vercel / Astro)
+
+**Las páginas cargan pero no aparecen datos**
+
+La variable `PUBLIC_API_URL` no está configurada en Vercel, o se cambió después del último build. Astro la incorpora en el momento del build — si no existe en ese momento, las URLs de la API quedan vacías.
+
+Solución:
+1. Ve a Vercel → Settings → Environment Variables
+2. Añade `PUBLIC_API_URL = https://jwtapiproyecto-production.up.railway.app`
+3. Redeploy (un push o un deploy manual desde el dashboard)
+
+**Error de hidratación en la consola (`Hydration mismatch`)**
+
+Ocurre cuando un componente Vue usa `<Teleport>` o `<Transition>` y Astro intenta hidratarlo con SSR. La solución es usar `client:only="vue"` en vez de `client:load`.
+
+Ejemplo en `DashboardLayout.astro`:
+```astro
+<CommandPalette client:only="vue" />
+```
+
+**El directorio raíz de Vercel es incorrecto**
+
+Vercel podría intentar buildear desde la raíz del repo en vez de `frontend/`. Verifica en Vercel → Settings → General → Root Directory que esté apuntando a `frontend`.
+
+---
+
+## Railway (Backend)
+
+**`Application failed to respond`**
+
+Railway inyecta `$PORT` automáticamente. No configures un puerto fijo en las variables de entorno ni en el Procfile. El Procfile debe verse así:
+
+```
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Si ves ese error a pesar de tener el Procfile correcto, revisa los logs de Railway en tiempo real (`Deployments → Ver logs`) para ver el error real.
+
+**El build falla con `ModuleNotFoundError`**
+
+Alguna dependencia falta en `requirements.txt`. Añádela y haz push. Si la dependencia es nueva (por ejemplo, `slowapi`), debe aparecer en `requirements.txt` con la versión exacta.
+
+**`DATABASE_URL` — errores de conexión en producción**
+
+Railway MySQL genera la URL con el prefijo `mysql://`. Cámbialo manualmente a `mysql+pymysql://` en la variable de entorno:
+
+```
+DATABASE_URL=mysql+pymysql://root:password@monorail.proxy.rlwy.net:19703/railway
+```
+
+---
+
+## Cookies y refresh tokens
+
+**El refresh token no se envía entre dominios**
+
+Las cookies `HttpOnly` con `SameSite=None` requieren HTTPS en ambos extremos. Si el backend está en Railway (`https://`) y el frontend en Vercel (`https://`) funciona correctamente.
+
+Si estás en desarrollo local (HTTP), el navegador puede descartar la cookie. Para pruebas locales completas del flujo de refresh, usa la extensión de Swagger en `http://localhost:8000/docs` o herramientas como Postman que gestionan cookies correctamente.
+
+**El logout no elimina la cookie**
+
+El endpoint `POST /api/v1/auth/logout` limpia la cookie del lado del servidor, pero el frontend también debe eliminar el `access_token` del estado local (localStorage, variable en memoria, etc.).
+
+---
+
+## Otros
+
+**`422 Unprocessable Entity`**
+
+El cuerpo de la petición no cumple la validación del schema de Pydantic. La respuesta incluye el detalle del campo que falló:
+
+```json
+{
+  "detail": [
+    { "loc": ["body", "price"], "msg": "value is not a valid float", "type": "type_error.float" }
+  ]
+}
+```
+
+**`403 Forbidden`**
+
+El usuario está autenticado pero no tiene permiso. Los endpoints de administración requieren `role=admin`. Cambia el rol del usuario vía `PATCH /api/v1/users/{id}/role` con una cuenta admin.
+
+**El servidor tarda mucho en responder la primera vez**
+
+Railway pone los servicios en sleep después de inactividad (plan gratuito). El primer request tras un periodo sin tráfico puede tardar 5-15 segundos mientras el contenedor arranca. Los siguientes son normales.

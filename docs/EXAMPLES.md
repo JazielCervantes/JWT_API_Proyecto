@@ -1,505 +1,211 @@
-# 💻 Ejemplos de Uso - Ready-to-Copy Code
+# Ejemplos de uso de la API
+
+Asume que el backend está corriendo en `http://localhost:8000` y que tienes las credenciales del admin por defecto.
 
 ---
 
-## 🎯 Antes de Comenzar
+## Swagger UI
 
-Asume que:
-- ✅ Backend corriendo en http://localhost:8000
-- ✅ Admin user: `admin` / `admin123`
+La forma más directa de probar la API sin escribir código.
 
----
-
-## 1. Swagger UI (Recomendado)
-
-**La forma FÁCIL de probar la API.**
-
-### Pasos
-
-1. Abre: http://localhost:8000/docs
-2. Ve a `/api/v1/auth/login`
-3. Click en **"Try it out"**
-4. Ingresa: `{"username":"admin","password":"admin123"}`
-5. Click **"Execute"**
-6. Copia el `access_token`
-7. Click en **"Authorize"** 🔒 (arriba a la derecha)
-8. Pega: `Bearer {tu_access_token}`
-9. ¡Listo! Ahora puedes probar endpoints protegidos
+1. Abre http://localhost:8000/docs
+2. Ve a `POST /api/v1/auth/login` → **Try it out**
+3. Ingresa las credenciales:
+   ```json
+   { "username": "admin", "password": "admin123" }
+   ```
+4. Ejecuta y copia el `access_token` de la respuesta
+5. Click en el botón **Authorize** (arriba a la derecha)
+6. Pega `Bearer <tu_token>` en el campo
+7. A partir de ahora puedes probar cualquier endpoint protegido
 
 ---
 
-## 2. cURL (Terminal)
+## cURL
 
-Ideal para scripts y automatización.
-
-### Registro de Usuario
+### Login y guardar el token
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@ejemplo.com",
-    "username": "testuser",
-    "password": "TestPass123!",
-    "full_name": "Usuario de Prueba"
-  }'
-```
-
-### Login
-
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
-```
-
-**Respuesta:**
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1Ni...",
-  "refresh_token": "eyJhbGciOiJIUzI1Ni...",
-  "token_type": "bearer"
-}
-```
-
-**Guardar el token:**
-```bash
-# En Linux/macOS:
+# Linux/macOS: guarda el token en una variable
 TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}' | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)
+  -d '{"username":"admin","password":"admin123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
 echo $TOKEN
 ```
 
-### Obtener Mi Perfil
-
 ```bash
-curl -X GET http://localhost:8000/api/v1/users/me \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1Ni..."
+# Windows PowerShell
+$response = Invoke-RestMethod -Method POST -Uri "http://localhost:8000/api/v1/auth/login" `
+  -ContentType "application/json" `
+  -Body '{"username":"admin","password":"admin123"}'
+$TOKEN = $response.access_token
 ```
 
-### Listar Productos
+### Registro de usuario
 
 ```bash
-# Sin filtros
-curl -X GET http://localhost:8000/api/v1/products
-
-# Con paginación
-curl -X GET "http://localhost:8000/api/v1/products?skip=0&limit=10"
-
-# Con filtros
-curl -X GET "http://localhost:8000/api/v1/products?search=laptop&min_price=500&max_price=2000"
-```
-
-### Crear Producto (ADMIN)
-
-```bash
-curl -X POST http://localhost:8000/api/v1/products \
-  -H "Authorization: Bearer {token_admin}" \
+curl -X POST http://localhost:8000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Laptop HP Pavilion",
-    "description": "Laptop de 15 pulgadas",
-    "price": 799.99,
-    "stock": 15,
-    "category": "Electrónica",
-    "brand": "HP",
-    "sku": "HP-PAV-001"
+    "email": "nuevo@ejemplo.com",
+    "username": "nuevousuario",
+    "password": "Password123!",
+    "full_name": "Nuevo Usuario"
   }'
 ```
 
-### Refrescar Token
+### Obtener mi perfil
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refresh_token":"eyJhbGciOiJIUzI1Ni..."}'
+curl http://localhost:8000/api/v1/auth/me \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-### Logout
+### Listar productos (no requiere auth)
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/logout \
-  -H "Authorization: Bearer {token}"
+# Lista básica
+curl http://localhost:8000/api/v1/products
+
+# Con paginación y filtros
+curl "http://localhost:8000/api/v1/products?skip=0&limit=10&category=Electrónica&sort_by=price&order=asc"
+```
+
+### Crear un producto (solo admin)
+
+```bash
+curl -X POST http://localhost:8000/api/v1/products \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "Laptop Pro",
+    "description": "Laptop para desarrollo",
+    "price": 1299.99,
+    "stock": 15,
+    "category": "Electrónica",
+    "brand": "Dell"
+  }'
+```
+
+### Actualizar un producto
+
+```bash
+curl -X PUT http://localhost:8000/api/v1/products/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"price": 1199.99, "stock": 20}'
+```
+
+### Eliminar un producto
+
+```bash
+curl -X DELETE http://localhost:8000/api/v1/products/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Listar usuarios (solo admin)
+
+```bash
+curl http://localhost:8000/api/v1/users \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Cambiar rol de un usuario
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/users/2/role \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"role": "admin"}'
 ```
 
 ---
 
-## 3. Python + Requests
-
-Perfecto para integración con scripts o Django.
-
-### Instalación
-
-```bash
-pip install requests
-```
-
-### Script Completo
+## Python (requests)
 
 ```python
 import requests
-import json
 
-class APIClient:
-    def __init__(self, base_url):
-        self.base_url = base_url
-        self.access_token = None
-        self.refresh_token = None
-    
-    def get_headers(self):
-        return {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.access_token}" if self.access_token else ""
-        }
-    
-    def register(self, email, username, password, full_name):
-        """Registrar nuevo usuario"""
-        url = f"{self.base_url}/api/v1/auth/register"
-        data = {
-            "email": email,
-            "username": username,
-            "password": password,
-            "full_name": full_name
-        }
-        response = requests.post(url, json=data)
-        return response.json()
-    
-    def login(self, username, password):
-        """Iniciar sesión"""
-        url = f"{self.base_url}/api/v1/auth/login"
-        data = {"username": username, "password": password}
-        response = requests.post(url, json=data)
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.access_token = data["access_token"]
-            self.refresh_token = data["refresh_token"]
-            return data
-        raise Exception(f"Login failed: {response.json()}")
-    
-    def get_my_profile(self):
-        """Obtener mi perfil"""
-        url = f"{self.base_url}/api/v1/users/me"
-        response = requests.get(url, headers=self.get_headers())
-        return response.json()
-    
-    def list_products(self, skip=0, limit=10, search=None):
-        """Listar productos"""
-        url = f"{self.base_url}/api/v1/products"
-        params = {"skip": skip, "limit": limit}
-        if search:
-            params["search"] = search
-        response = requests.get(url, params=params)
-        return response.json()
-    
-    def create_product(self, product_data):
-        """Crear producto (admin)"""
-        url = f"{self.base_url}/api/v1/products"
-        response = requests.post(url, json=product_data, headers=self.get_headers())
-        return response.json()
-    
-    def refresh_access_token(self):
-        """Refrescar token"""
-        url = f"{self.base_url}/api/v1/auth/refresh"
-        data = {"refresh_token": self.refresh_token}
-        response = requests.post(url, json=data)
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.access_token = data["access_token"]
-            return data
-        raise Exception("Token refresh failed")
-    
-    def logout(self):
-        """Cerrar sesión"""
-        url = f"{self.base_url}/api/v1/auth/logout"
-        response = requests.post(url, headers=self.get_headers())
-        return response.status_code == 200
-
-
-# ========== USO ==========
-
-if __name__ == "__main__":
-    client = APIClient("http://localhost:8000")
-    
-    # 1. Registrarse
-    print("1. Registrando usuario...")
-    user = client.register(
-        email="juan@ejemplo.com",
-        username="juan",
-        password="JuanPass123!",
-        full_name="Juan García"
-    )
-    print(f"✅ {user['username']} registrado")
-    
-    # 2. Login
-    print("\n2. Iniciando sesión...")
-    tokens = client.login("juan", "JuanPass123!")
-    print(f"✅ Token: {tokens['access_token'][:50]}...")
-    
-    # 3. Obtener perfil
-    print("\n3. Obteniendo perfil...")
-    profile = client.get_my_profile()
-    print(f"✅ Usuario: {profile['username']} ({profile['role']})")
-    
-    # 4. Listar productos
-    print("\n4. Listando productos...")
-    products = client.list_products(limit=5)
-    print(f"✅ Total: {products['total']} productos")
-    
-    # 5. Logout
-    print("\n5. Cerrando sesión...")
-    if client.logout():
-        print("✅ Logout exitoso")
-```
-
-### Uso Rápido
-
-```python
-# imports
-from requests import post, get
+BASE = "http://localhost:8000/api/v1"
 
 # Login
-response = post("http://localhost:8000/api/v1/auth/login", json={
+resp = requests.post(f"{BASE}/auth/login", json={
     "username": "admin",
     "password": "admin123"
 })
-token = response.json()["access_token"]
-
-# Usar token
+token = resp.json()["access_token"]
 headers = {"Authorization": f"Bearer {token}"}
-user = get("http://localhost:8000/api/v1/users/me", headers=headers).json()
-print(user)
+
+# Obtener productos
+products = requests.get(f"{BASE}/products", params={"limit": 5}).json()
+for p in products["products"]:
+    print(f"{p['name']} - ${p['price']}")
+
+# Crear producto
+new_product = requests.post(f"{BASE}/products", headers=headers, json={
+    "name": "Teclado compacto",
+    "description": "Teclado inalámbrico 75%",
+    "price": 89.99,
+    "stock": 30,
+    "category": "Accesorios",
+    "brand": "Keychron"
+}).json()
+print(f"Creado con ID: {new_product['id']}")
 ```
 
 ---
 
-## 4. JavaScript + Fetch
-
-Para usar en el navegador o Node.js.
-
-### Código Completo
+## JavaScript (fetch)
 
 ```javascript
-class APIClient {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-    this.accessToken = null;
-  }
-
-  getHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      ...(this.accessToken && { 'Authorization': `Bearer ${this.accessToken}` })
-    };
-  }
-
-  async login(username, password) {
-    const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      this.accessToken = data.access_token;
-      localStorage.setItem('refresh_token', data.refresh_token);
-      return data;
-    }
-    throw new Error((await response.json()).detail);
-  }
-
-  async getMyProfile() {
-    const response = await fetch(`${this.baseUrl}/api/v1/users/me`, {
-      headers: this.getHeaders()
-    });
-    return response.json();
-  }
-
-  async listProducts(skip = 0, limit = 10) {
-    const response = await fetch(
-      `${this.baseUrl}/api/v1/products?skip=${skip}&limit=${limit}`
-    );
-    return response.json();
-  }
-
-  async logout() {
-    await fetch(`${this.baseUrl}/api/v1/auth/logout`, {
-      method: 'POST',
-      headers: this.getHeaders()
-    });
-    this.accessToken = null;
-    localStorage.removeItem('refresh_token');
-  }
-}
-
-// ========== USO ==========
-
-const client = new APIClient('http://localhost:8000');
+const BASE = 'http://localhost:8000/api/v1';
 
 // Login
-await client.login('admin', 'admin123');
-console.log('✅ Login exitoso');
-
-// Mi perfil
-const profile = await client.getMyProfile();
-console.log('✅ Usuario:', profile.username);
-
-// Listar productos
-const products = await client.listProducts();
-console.log('✅ Productos:', products);
-```
-
-### Uso Rápido
-
-```javascript
-// Login
-const loginRes = await fetch('http://localhost:8000/api/v1/auth/login', {
+const loginResp = await fetch(`${BASE}/auth/login`, {
   method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',  // para que el refresh token llegue en cookie
   body: JSON.stringify({ username: 'admin', password: 'admin123' })
 });
-const { access_token } = await loginRes.json();
+const { access_token } = await loginResp.json();
 
-// Usar token
-const meRes = await fetch('http://localhost:8000/api/v1/users/me', {
-  headers: { 'Authorization': `Bearer ${access_token}` }
+// Cualquier petición autenticada
+const meResp = await fetch(`${BASE}/auth/me`, {
+  headers: { 'Authorization': `Bearer ${access_token}` },
+  credentials: 'include'
 });
-const user = await meRes.json();
-console.log(user);
+const me = await meResp.json();
+console.log(me.full_name);
+
+// Listar productos (sin auth)
+const prodResp = await fetch(`${BASE}/products?limit=5`);
+const { products, total } = await prodResp.json();
+console.log(`${total} productos en total`);
 ```
 
 ---
 
-## 5. Postman Collection
+## Endpoints disponibles
 
-### Crear Colección
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| POST | `/api/v1/auth/register` | Registrar cuenta | No |
+| POST | `/api/v1/auth/login` | Iniciar sesión | No |
+| POST | `/api/v1/auth/refresh` | Renovar access token | Cookie |
+| POST | `/api/v1/auth/logout` | Cerrar sesión | Sí |
+| GET | `/api/v1/auth/me` | Datos del usuario actual | Sí |
+| GET | `/api/v1/products` | Listar productos | No |
+| GET | `/api/v1/products/{id}` | Obtener producto | No |
+| POST | `/api/v1/products` | Crear producto | Admin |
+| PUT | `/api/v1/products/{id}` | Actualizar producto | Admin |
+| DELETE | `/api/v1/products/{id}` | Eliminar producto | Admin |
+| GET | `/api/v1/users` | Listar usuarios | Admin |
+| GET | `/api/v1/users/{id}` | Obtener usuario | Sí |
+| PUT | `/api/v1/users/me` | Actualizar perfil | Sí |
+| POST | `/api/v1/users/me/change-password` | Cambiar contraseña | Sí |
+| PATCH | `/api/v1/users/{id}/role` | Cambiar rol | Admin |
+| DELETE | `/api/v1/users/{id}` | Eliminar usuario | Admin |
 
-1. Abre Postman
-2. **Collections** → **+ New**
-3. Nombre: "JWT API"
-4. **Create**
-
-### Agregar Requests
-
-#### 1. Login
-- **Method**: POST
-- **URL**: `{{base_url}}/api/v1/auth/login`
-- **Body** (JSON):
-  ```json
-  {
-    "username": "admin",
-    "password": "admin123"
-  }
-  ```
-- **Tests** (para guardar token):
-  ```javascript
-  var jsonData = pm.response.json();
-  pm.environment.set("access_token", jsonData.access_token);
-  pm.environment.set("refresh_token", jsonData.refresh_token);
-  ```
-
-#### 2. Get Me
-- **Method**: GET
-- **URL**: `{{base_url}}/api/v1/users/me`
-- **Headers**:
-  - Key: `Authorization`
-  - Value: `Bearer {{access_token}}`
-
-#### 3. List Products
-- **Method**: GET
-- **URL**: `{{base_url}}/api/v1/products?skip=0&limit=10`
-
-#### 4. Create Product
-- **Method**: POST
-- **URL**: `{{base_url}}/api/v1/products`
-- **Headers**:
-  - Key: `Authorization`
-  - Value: `Bearer {{access_token}}`
-- **Body** (JSON):
-  ```json
-  {
-    "name": "Laptop",
-    "description": "Test",
-    "price": 999.99,
-    "stock": 10,
-    "category": "Tech",
-    "brand": "Dell",
-    "sku": "DELL-001"
-  }
-  ```
-
-### Usar Colección
-
-1. Click en **Environment** (arriba)
-2. **+ New**
-3. Name: "Desarrollo"
-4. Variable `base_url` = `http://localhost:8000`
-5. **Save**
-6. Ahora corre requests que automáticamente usan variables
-
----
-
-## 🎯 Casos de Uso Comunes
-
-### Flujo: Registro → Login → Ver Perfil → Logout
-
-**cURL:**
-```bash
-# 1. Registrarse
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"new@ejemplo.com","username":"newuser","password":"Test123!","full_name":"New User"}'
-
-# 2. Login
-TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"newuser","password":"Test123!"}' | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)
-
-# 3. Ver perfil
-curl -X GET http://localhost:8000/api/v1/users/me \
-  -H "Authorization: Bearer $TOKEN"
-
-# 4. Logout
-curl -X POST http://localhost:8000/api/v1/auth/logout \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-**JavaScript:**
-```javascript
-// 1. Registrarse
-await fetch('http://localhost:8000/api/v1/auth/register', {
-  method: 'POST',
-  body: JSON.stringify({
-    email: "new@ejemplo.com",
-    username: "newuser",
-    password: "Test123!",
-    full_name: "New User"
-  })
-});
-
-// 2. Login
-const loginRes = await fetch('http://localhost:8000/api/v1/auth/login', {
-  method: 'POST',
-  body: JSON.stringify({ username: "newuser", password: "Test123!" })
-});
-const token = (await loginRes.json()).access_token;
-
-// 3. Ver perfil
-const me = await fetch('http://localhost:8000/api/v1/users/me', {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-console.log(await me.json());
-
-// 4. Logout
-await fetch('http://localhost:8000/api/v1/auth/logout', {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-```
-
----
-
-**Ver [docs/DEVELOPMENT.md](DEVELOPMENT.md) para entender conceptos**
+Todos los detalles de parámetros y respuestas están documentados interactivamente en `/docs`.

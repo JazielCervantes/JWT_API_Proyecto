@@ -1,631 +1,281 @@
-# 🚀 Ejemplos de Uso de la API
+# Ejemplos de uso de la API
 
-Este documento contiene ejemplos prácticos para usar la API con diferentes herramientas.
+Documentación práctica con ejemplos para consumir los endpoints directamente.
 
----
-
-## 📋 Tabla de Contenidos
-
-1. [Swagger UI](#swagger-ui)
-2. [cURL (Terminal)](#curl-terminal)
-3. [Python + Requests](#python-requests)
-4. [JavaScript + Fetch](#javascript-fetch)
-5. [Postman](#postman)
+URL base en producción: `https://jwtapiproyecto-production.up.railway.app`  
+URL base en desarrollo: `http://localhost:8000`
 
 ---
 
-## 1. Swagger UI
+## Autenticación
 
-La forma más fácil de probar la API.
+Todos los endpoints protegidos requieren el header `Authorization: Bearer <token>`. El token se obtiene haciendo login.
 
-### Pasos:
-
-1. **Inicia el servidor**
-   ```bash
-   cd backend
-   uvicorn app.main:app --reload
-   ```
-
-2. **Abre Swagger UI**
-   - URL: http://localhost:8000/docs
-
-3. **Prueba el login**
-   - Expande `/api/auth/login`
-   - Click en "Try it out"
-   - Ingresa:
-     ```json
-     {
-       "username": "admin",
-       "password": "admin123"
-     }
-     ```
-   - Click "Execute"
-   - Copia el `access_token`
-
-4. **Autoriza tu sesión**
-   - Click en el botón "Authorize" 🔒 (arriba a la derecha)
-   - Pega: `Bearer <tu_access_token>`
-   - Click "Authorize"
-
-5. **Prueba endpoints protegidos**
-   - Ahora puedes probar `/api/users/me` y otros endpoints
-
----
-
-## 2. cURL (Terminal)
-
-Ideal para scripts y testing rápido.
-
-### Registro de Usuario
+### Registro
 
 ```bash
-curl -X POST http://localhost:8000/api/auth/register \
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "test@ejemplo.com",
-    "username": "testuser",
-    "password": "password123",
-    "full_name": "Usuario de Prueba"
+    "email": "usuario@ejemplo.com",
+    "username": "miusuario",
+    "password": "Segura123!",
+    "full_name": "Mi Usuario"
   }'
+```
+
+Respuesta:
+```json
+{
+  "id": 5,
+  "email": "usuario@ejemplo.com",
+  "username": "miusuario",
+  "full_name": "Mi Usuario",
+  "role": "user",
+  "is_active": true
+}
 ```
 
 ### Login
 
 ```bash
-curl -X POST http://localhost:8000/api/auth/login \
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "admin123"
-  }'
+  -c cookies.txt \
+  -d '{"username":"admin","password":"admin123"}'
 ```
 
-**Respuesta:**
+`-c cookies.txt` guarda el refresh token (cookie `HttpOnly`) para usarlo después.
+
+Respuesta:
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGci...",
+  "token_type": "bearer",
+  "expires_in": 900
 }
 ```
 
-### Obtener Mi Perfil
+### Renovar el access token
 
 ```bash
-curl -X GET http://localhost:8000/api/users/me \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+# Usa la cookie guardada con -c/-b
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/auth/refresh \
+  -b cookies.txt \
+  -c cookies.txt
 ```
 
-### Listar Productos
+### Obtener mi perfil
 
 ```bash
-# Sin filtros
-curl -X GET http://localhost:8000/api/products
-
-# Con paginación
-curl -X GET "http://localhost:8000/api/products?skip=0&limit=10"
-
-# Con filtros
-curl -X GET "http://localhost:8000/api/products?search=laptop&min_price=500&max_price=2000"
+curl https://jwtapiproyecto-production.up.railway.app/api/v1/auth/me \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-### Crear Producto (Admin)
+### Logout
 
 ```bash
-curl -X POST http://localhost:8000/api/products \
-  -H "Authorization: Bearer <tu_token_admin>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Laptop HP Pavilion",
-    "description": "Laptop para uso general",
-    "price": 799.99,
-    "stock": 15,
-    "category": "Electrónica",
-    "brand": "HP",
-    "sku": "HP-PAV-001"
-  }'
-```
-
-### Actualizar Producto (Admin)
-
-```bash
-curl -X PUT http://localhost:8000/api/products/1 \
-  -H "Authorization: Bearer <tu_token_admin>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "price": 749.99,
-    "stock": 20
-  }'
-```
-
-### Eliminar Producto (Admin)
-
-```bash
-curl -X DELETE http://localhost:8000/api/products/1 \
-  -H "Authorization: Bearer <tu_token_admin>"
-```
-
-### Refrescar Token
-
-```bash
-curl -X POST http://localhost:8000/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }'
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/auth/logout \
+  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt
 ```
 
 ---
 
-## 3. Python + Requests
+## Productos
 
-Perfecto para integración con scripts Python.
+### Listar productos
 
-### Instalación
+No requiere autenticación.
 
 ```bash
-pip install requests
+# Lista paginada básica
+curl "https://jwtapiproyecto-production.up.railway.app/api/v1/products?skip=0&limit=10"
+
+# Con filtros
+curl "https://jwtapiproyecto-production.up.railway.app/api/v1/products?category=Electrónica&sort_by=price&order=asc"
 ```
 
-### Código de Ejemplo
+Parámetros disponibles:
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `skip` | int | Registros a omitir (default 0) |
+| `limit` | int | Máximo de resultados (default 10, max 100) |
+| `category` | string | Filtrar por categoría |
+| `brand` | string | Filtrar por marca |
+| `min_price` | float | Precio mínimo |
+| `max_price` | float | Precio máximo |
+| `sort_by` | string | Campo para ordenar: `name`, `price`, `stock`, `created_at` |
+| `order` | string | `asc` o `desc` |
+| `search` | string | Búsqueda por nombre o descripción |
+
+Respuesta:
+```json
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Laptop Pro",
+      "description": "...",
+      "price": 1299.99,
+      "stock": 15,
+      "category": "Electrónica",
+      "brand": "Dell",
+      "is_active": true,
+      "created_at": "2025-01-01T00:00:00"
+    }
+  ],
+  "total": 20,
+  "skip": 0,
+  "limit": 10
+}
+```
+
+### Obtener un producto
+
+```bash
+curl https://jwtapiproyecto-production.up.railway.app/api/v1/products/1
+```
+
+### Crear producto (admin)
+
+```bash
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/products \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "Monitor 4K",
+    "description": "Monitor UHD de 27 pulgadas",
+    "price": 499.99,
+    "stock": 8,
+    "category": "Monitores",
+    "brand": "LG"
+  }'
+```
+
+### Actualizar producto (admin)
+
+Solo se envían los campos que cambian:
+
+```bash
+curl -X PUT https://jwtapiproyecto-production.up.railway.app/api/v1/products/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"price": 449.99, "stock": 12}'
+```
+
+### Eliminar producto (admin)
+
+```bash
+curl -X DELETE https://jwtapiproyecto-production.up.railway.app/api/v1/products/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Usuarios
+
+### Listar usuarios (admin)
+
+```bash
+curl "https://jwtapiproyecto-production.up.railway.app/api/v1/users?skip=0&limit=20" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Obtener un usuario
+
+```bash
+curl https://jwtapiproyecto-production.up.railway.app/api/v1/users/2 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Actualizar mi perfil
+
+```bash
+curl -X PUT https://jwtapiproyecto-production.up.railway.app/api/v1/users/me \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"full_name": "Nombre actualizado"}'
+```
+
+### Cambiar contraseña
+
+```bash
+curl -X POST https://jwtapiproyecto-production.up.railway.app/api/v1/users/me/change-password \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"current_password": "actual", "new_password": "Nueva123!"}'
+```
+
+### Cambiar rol de usuario (admin)
+
+```bash
+curl -X PATCH https://jwtapiproyecto-production.up.railway.app/api/v1/users/3/role \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"role": "admin"}'
+```
+
+Roles disponibles: `user`, `admin`.
+
+### Activar / desactivar usuario (admin)
+
+```bash
+curl -X PATCH https://jwtapiproyecto-production.up.railway.app/api/v1/users/3/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"is_active": false}'
+```
+
+---
+
+## Python (requests)
 
 ```python
 import requests
-import json
 
-# Configuración
-BASE_URL = "http://localhost:8000"
+BASE = "https://jwtapiproyecto-production.up.railway.app/api/v1"
+
+# Login (guarda cookies automáticamente con Session)
 session = requests.Session()
+resp = session.post(f"{BASE}/auth/login", json={
+    "username": "admin",
+    "password": "admin123"
+})
+token = resp.json()["access_token"]
+headers = {"Authorization": f"Bearer {token}"}
 
-class APIClient:
-    def __init__(self, base_url):
-        self.base_url = base_url
-        self.access_token = None
-        self.refresh_token = None
-    
-    def register(self, email, username, password, full_name):
-        """Registrar nuevo usuario"""
-        url = f"{self.base_url}/api/auth/register"
-        data = {
-            "email": email,
-            "username": username,
-            "password": password,
-            "full_name": full_name
-        }
-        response = requests.post(url, json=data)
-        return response.json()
-    
-    def login(self, username, password):
-        """Iniciar sesión"""
-        url = f"{self.base_url}/api/auth/login"
-        data = {
-            "username": username,
-            "password": password
-        }
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            tokens = response.json()
-            self.access_token = tokens["access_token"]
-            self.refresh_token = tokens["refresh_token"]
-            return tokens
-        else:
-            raise Exception(f"Error en login: {response.json()}")
-    
-    def get_headers(self):
-        """Obtener headers con autenticación"""
-        return {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json"
-        }
-    
-    def get_my_profile(self):
-        """Obtener mi perfil"""
-        url = f"{self.base_url}/api/users/me"
-        response = requests.get(url, headers=self.get_headers())
-        return response.json()
-    
-    def list_products(self, skip=0, limit=10, **filters):
-        """Listar productos con filtros"""
-        url = f"{self.base_url}/api/products"
-        params = {"skip": skip, "limit": limit, **filters}
-        response = requests.get(url, params=params)
-        return response.json()
-    
-    def create_product(self, product_data):
-        """Crear producto (admin)"""
-        url = f"{self.base_url}/api/products"
-        response = requests.post(
-            url, 
-            json=product_data, 
-            headers=self.get_headers()
-        )
-        return response.json()
-    
-    def update_product(self, product_id, update_data):
-        """Actualizar producto (admin)"""
-        url = f"{self.base_url}/api/products/{product_id}"
-        response = requests.put(
-            url,
-            json=update_data,
-            headers=self.get_headers()
-        )
-        return response.json()
-    
-    def delete_product(self, product_id):
-        """Eliminar producto (admin)"""
-        url = f"{self.base_url}/api/products/{product_id}"
-        response = requests.delete(url, headers=self.get_headers())
-        return response.status_code == 204
-    
-    def refresh_access_token(self):
-        """Refrescar el access token"""
-        url = f"{self.base_url}/api/auth/refresh"
-        data = {"refresh_token": self.refresh_token}
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            tokens = response.json()
-            self.access_token = tokens["access_token"]
-            self.refresh_token = tokens["refresh_token"]
-            return tokens
-        else:
-            raise Exception(f"Error al refrescar token: {response.json()}")
+# Listar productos
+products = session.get(f"{BASE}/products", params={"limit": 5}).json()
+for p in products["products"]:
+    print(f"{p['name']}: ${p['price']}")
 
-# ============ EJEMPLO DE USO ============
+# Crear un producto
+nuevo = session.post(f"{BASE}/products", headers=headers, json={
+    "name": "Webcam HD",
+    "description": "1080p, autofocus",
+    "price": 79.99,
+    "stock": 25,
+    "category": "Accesorios",
+    "brand": "Logitech"
+}).json()
+print(f"Producto creado: ID {nuevo['id']}")
 
-if __name__ == "__main__":
-    # Crear cliente
-    client = APIClient(BASE_URL)
-    
-    # 1. Registrar usuario
-    print("1. Registrando usuario...")
-    try:
-        user = client.register(
-            email="test@ejemplo.com",
-            username="testuser",
-            password="password123",
-            full_name="Usuario de Prueba"
-        )
-        print(f"✅ Usuario registrado: {user['username']}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    
-    # 2. Login
-    print("\n2. Iniciando sesión...")
-    try:
-        tokens = client.login("admin", "admin123")
-        print(f"✅ Login exitoso")
-        print(f"Access Token: {tokens['access_token'][:50]}...")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    
-    # 3. Obtener perfil
-    print("\n3. Obteniendo perfil...")
-    try:
-        profile = client.get_my_profile()
-        print(f"✅ Usuario: {profile['username']} ({profile['role']})")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    
-    # 4. Listar productos
-    print("\n4. Listando productos...")
-    try:
-        products = client.list_products(limit=5)
-        print(f"✅ Total productos: {products['total']}")
-        for product in products['products']:
-            print(f"  - {product['name']}: ${product['price']}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    
-    # 5. Crear producto (si es admin)
-    print("\n5. Creando producto...")
-    try:
-        new_product = client.create_product({
-            "name": "Producto de Prueba",
-            "description": "Creado desde Python",
-            "price": 99.99,
-            "stock": 10,
-            "category": "Test",
-            "brand": "Python",
-            "sku": "PY-TEST-001"
-        })
-        print(f"✅ Producto creado: {new_product['name']} (ID: {new_product['id']})")
-    except Exception as e:
-        print(f"❌ Error: {e}")
+# Renovar token con la cookie de sesión
+nuevo_token = session.post(f"{BASE}/auth/refresh").json()["access_token"]
 ```
 
 ---
 
-## 4. JavaScript + Fetch
+## Exploración interactiva
 
-Para usar en frontend o Node.js.
+La forma más cómoda de explorar todos los endpoints, parámetros y schemas es la interfaz Swagger:
 
-### Código de Ejemplo
+- Producción: https://jwtapiproyecto-production.up.railway.app/docs
+- Local: http://localhost:8000/docs
 
-```javascript
-class APIClient {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-    this.accessToken = null;
-    this.refreshToken = null;
-  }
+Y la versión ReDoc (solo lectura, mejor para leer documentación):
 
-  // Helper para headers
-  getHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      ...(this.accessToken && { 
-        'Authorization': `Bearer ${this.accessToken}` 
-      })
-    };
-  }
-
-  // Registro
-  async register(email, username, password, fullName) {
-    const response = await fetch(`${this.baseUrl}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        username,
-        password,
-        full_name: fullName
-      })
-    });
-    return response.json();
-  }
-
-  // Login
-  async login(username, password) {
-    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      this.accessToken = data.access_token;
-      this.refreshToken = data.refresh_token;
-      
-      // Guardar en localStorage (opcional)
-      localStorage.setItem('access_token', this.accessToken);
-      localStorage.setItem('refresh_token', this.refreshToken);
-      
-      return data;
-    }
-    throw new Error('Login failed');
-  }
-
-  // Obtener perfil
-  async getMyProfile() {
-    const response = await fetch(`${this.baseUrl}/api/users/me`, {
-      headers: this.getHeaders()
-    });
-    return response.json();
-  }
-
-  // Listar productos
-  async listProducts(params = {}) {
-    const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(
-      `${this.baseUrl}/api/products?${queryString}`
-    );
-    return response.json();
-  }
-
-  // Crear producto
-  async createProduct(productData) {
-    const response = await fetch(`${this.baseUrl}/api/products`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(productData)
-    });
-    return response.json();
-  }
-
-  // Actualizar producto
-  async updateProduct(productId, updateData) {
-    const response = await fetch(
-      `${this.baseUrl}/api/products/${productId}`,
-      {
-        method: 'PUT',
-        headers: this.getHeaders(),
-        body: JSON.stringify(updateData)
-      }
-    );
-    return response.json();
-  }
-
-  // Eliminar producto
-  async deleteProduct(productId) {
-    const response = await fetch(
-      `${this.baseUrl}/api/products/${productId}`,
-      {
-        method: 'DELETE',
-        headers: this.getHeaders()
-      }
-    );
-    return response.ok;
-  }
-
-  // Refrescar token
-  async refreshAccessToken() {
-    const response = await fetch(`${this.baseUrl}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        refresh_token: this.refreshToken 
-      })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      this.accessToken = data.access_token;
-      this.refreshToken = data.refresh_token;
-      
-      localStorage.setItem('access_token', this.accessToken);
-      localStorage.setItem('refresh_token', this.refreshToken);
-      
-      return data;
-    }
-    throw new Error('Token refresh failed');
-  }
-}
-
-// ============ EJEMPLO DE USO ============
-
-(async () => {
-  const client = new APIClient('http://localhost:8000');
-  
-  try {
-    // Login
-    console.log('Iniciando sesión...');
-    await client.login('admin', 'admin123');
-    console.log('✅ Login exitoso');
-    
-    // Obtener perfil
-    const profile = await client.getMyProfile();
-    console.log(`Usuario: ${profile.username}`);
-    
-    // Listar productos
-    const products = await client.listProducts({ limit: 5 });
-    console.log(`Total productos: ${products.total}`);
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
-})();
-```
-
-### Uso en Vue.js
-
-```vue
-<script setup>
-import { ref, onMounted } from 'vue';
-
-const products = ref([]);
-const loading = ref(false);
-const accessToken = ref(localStorage.getItem('access_token'));
-
-async function fetchProducts() {
-  loading.value = true;
-  try {
-    const response = await fetch('http://localhost:8000/api/products');
-    const data = await response.json();
-    products.value = data.products;
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function login(username, password) {
-  const response = await fetch('http://localhost:8000/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  
-  const data = await response.json();
-  accessToken.value = data.access_token;
-  localStorage.setItem('access_token', data.access_token);
-}
-
-onMounted(() => {
-  fetchProducts();
-});
-</script>
-
-<template>
-  <div>
-    <h1>Productos</h1>
-    <div v-if="loading">Cargando...</div>
-    <div v-else>
-      <div v-for="product in products" :key="product.id">
-        {{ product.name }} - ${{ product.price }}
-      </div>
-    </div>
-  </div>
-</template>
-```
-
----
-
-## 5. Postman
-
-### Configuración Inicial
-
-1. **Crear nueva colección**: "JWT API"
-
-2. **Configurar variables de entorno**:
-   - `base_url`: `http://localhost:8000`
-   - `access_token`: (se llenará automáticamente)
-   - `refresh_token`: (se llenará automáticamente)
-
-3. **Configurar autorización**:
-   - Type: Bearer Token
-   - Token: `{{access_token}}`
-
-### Script para Login (Tests tab)
-
-```javascript
-// Guardar tokens automáticamente después del login
-if (pm.response.code === 200) {
-    const jsonData = pm.response.json();
-    pm.environment.set("access_token", jsonData.access_token);
-    pm.environment.set("refresh_token", jsonData.refresh_token);
-    console.log("✅ Tokens guardados");
-}
-```
-
-### Colección de Requests
-
-1. **Login**
-   - POST `{{base_url}}/api/auth/login`
-   - Body: 
-     ```json
-     {
-       "username": "admin",
-       "password": "admin123"
-     }
-     ```
-
-2. **Get My Profile**
-   - GET `{{base_url}}/api/users/me`
-   - Auth: Bearer {{access_token}}
-
-3. **List Products**
-   - GET `{{base_url}}/api/products?limit=10`
-
-4. **Create Product**
-   - POST `{{base_url}}/api/products`
-   - Auth: Bearer {{access_token}}
-   - Body:
-     ```json
-     {
-       "name": "Test Product",
-       "price": 99.99,
-       "stock": 10
-     }
-     ```
-
----
-
-## 📝 Notas Importantes
-
-1. **Tokens expiran**: El access token expira en 30 minutos por defecto
-2. **Refrescar tokens**: Usa el endpoint `/api/auth/refresh` cuando el access token expire
-3. **Errores 401**: Significa que el token expiró o es inválido
-4. **Errores 403**: Significa que no tienes permisos para esa acción
-5. **CORS**: Asegúrate de que tu frontend esté en la lista de orígenes permitidos en `.env`
-
----
-
-## 🎯 Flujo Recomendado
-
-1. **Registro** → Crear cuenta
-2. **Login** → Obtener tokens
-3. **Usar API** → Hacer peticiones con access token
-4. **Token expira** → Usar refresh token
-5. **Logout** → Invalidar tokens
+- Producción: https://jwtapiproyecto-production.up.railway.app/redoc
+- Local: http://localhost:8000/redoc
