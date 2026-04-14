@@ -102,6 +102,14 @@ app = FastAPI(
     
     - **v1** (actual): `/api/v1/` - Arquitectura con Repositorios e inyección de dependencias
     
+    ## v2.0 - Frontend SaaS Redesign
+    
+    * Nuevo frontend con diseño minimalista SaaS (Astro + Vue + TailwindCSS)
+    * Modo claro/oscuro con persistencia
+    * Command Palette (Ctrl+K)
+    * Skeleton loaders y animaciones
+    * Layout con sidebar responsive
+    
     ## Características
     
     * 🔐 **Autenticación JWT** con access y refresh tokens (HTTP-Only cookies)
@@ -307,6 +315,7 @@ def root():
                 "description": "Versión actual con Repository Pattern e inyección de dependencias"
             }
         },
+        "release": "2.0.0 — SaaS Redesign",
         "documentation": {
             "swagger": "/docs",
             "redoc": "/redoc",

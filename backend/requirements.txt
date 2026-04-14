@@ -12,6 +12,7 @@ cryptography==43.0.3
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.1
+slowapi==0.1.9
 
 # Validación (versiones con soporte Python 3.13)
 pydantic==2.10.3

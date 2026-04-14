@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     
     # Información de la aplicación
     APP_NAME: str = "API REST Profesional"
-    APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    APP_VERSION: str = "2.0.0"
+    DEBUG: bool = False
     
     # Base de datos
     DATABASE_URL: str
