@@ -1,0 +1,231 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
+import CommandPalette from '../components/layout/CommandPalette.vue';
+
+const { title = 'Dashboard', currentPage = '' } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/jwt.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet" />
+  <title>{title} — API</title>
+  <script is:inline>
+    (function(){
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</head>
+<body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- ── SIDEBAR ─────────────────────────────── -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out flex flex-col">
+
+      <!-- Logo -->
+      <div class="h-16 flex items-center gap-3 px-5 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+        <a href="/" class="flex items-center gap-3 group">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+            </svg>
+          </div>
+          <span class="font-semibold text-lg tracking-tight">API REST</span>
+        </a>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Sidebar navigation">
+        <p class="px-3 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Menú</p>
+
+        <a href="/dashboard"
+          class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
+            currentPage === 'dashboard'
+              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200"]}>
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+          </svg>
+          Dashboard
+        </a>
+
+        <a href="/products"
+          class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
+            currentPage === 'products'
+              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200"]}>
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+          </svg>
+          Productos
+        </a>
+
+        <a id="nav-users" href="/users" style="display:none"
+          class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
+            currentPage === 'users'
+              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200"]}>
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+          </svg>
+          Usuarios
+        </a>
+
+        <div class="pt-3">
+          <p class="px-3 pt-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Cuenta</p>
+        </div>
+
+        <a href="/profile"
+          class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
+            currentPage === 'profile'
+              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200"]}>
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Mi Perfil
+        </a>
+
+        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener noreferrer"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-150">
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+          </svg>
+          API Docs
+          <svg class="w-3 h-3 ml-auto text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+          </svg>
+        </a>
+      </nav>
+
+      <!-- User section -->
+      <div class="p-3 border-t border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+        <div id="sidebarUser" class="flex items-center gap-3 p-2 rounded-xl">
+          <div id="sidebarAvatar" class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p id="sidebarName" class="text-sm font-medium truncate">—</p>
+            <p id="sidebarRole" class="text-xs text-zinc-500 dark:text-zinc-400 truncate">—</p>
+          </div>
+          <button id="logoutBtn" class="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors" title="Cerrar sesión" aria-label="Cerrar sesión">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity" aria-hidden="true"></div>
+
+    <!-- ── MAIN CONTENT AREA ───────────────────── -->
+    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+
+      <!-- Top navbar -->
+      <header class="h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <button id="menuBtn" class="lg:hidden p-2 -ml-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 transition-colors" aria-label="Abrir menú">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+            </svg>
+          </button>
+          <h1 class="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 hidden sm:block">{title}</h1>
+        </div>
+
+        <CommandPalette client:load />
+
+        <div class="flex items-center gap-1">
+          <ThemeToggle client:load />
+        </div>
+      </header>
+
+      <!-- Page content -->
+      <main class="flex-1 p-4 lg:p-8 max-w-[1400px] w-full mx-auto">
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
+  </div>
+
+  <!-- Global scripts -->
+  <script is:inline>
+    // ── Toast System ────────────────────────────
+    window.showToast = function(message, type, duration) {
+      type = type || 'info';
+      duration = duration || 3500;
+      var container = document.getElementById('toast-container');
+      var styles = {
+        success: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+        error: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400',
+        info: 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400'
+      };
+      var icons = { success: '✓', error: '✕', info: 'ℹ' };
+      var toast = document.createElement('div');
+      toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium shadow-lg max-w-sm ' + (styles[type] || styles.info);
+      toast.style.animation = 'slideUp 0.3s ease-out';
+      toast.innerHTML = '<span class="text-base">' + (icons[type] || 'ℹ') + '</span><span>' + message + '</span>';
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.2s ease';
+        setTimeout(function() { toast.remove(); }, 200);
+      }, duration);
+    };
+
+    // ── Sidebar Toggle ──────────────────────────
+    window.toggleSidebar = function() {
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('sidebarOverlay');
+      if (sidebar) sidebar.classList.toggle('-translate-x-full');
+      if (overlay) overlay.classList.toggle('hidden');
+    };
+    var menuBtn = document.getElementById('menuBtn');
+    var sidebarOverlay = document.getElementById('sidebarOverlay');
+    if (menuBtn) menuBtn.addEventListener('click', window.toggleSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', window.toggleSidebar);
+
+    // ── Sidebar User Info ───────────────────────
+    (function() {
+      try {
+        var user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user) {
+          var initials = (user.full_name || '?').split(' ').map(function(w) { return w[0]; }).join('').slice(0,2).toUpperCase();
+          var avatarEl = document.getElementById('sidebarAvatar');
+          var nameEl = document.getElementById('sidebarName');
+          var roleEl = document.getElementById('sidebarRole');
+          if (avatarEl) avatarEl.textContent = initials;
+          if (nameEl) nameEl.textContent = user.full_name || '—';
+          if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Administrador' : 'Usuario';
+          if (user.role === 'admin') {
+            var navUsers = document.getElementById('nav-users');
+            if (navUsers) navUsers.style.display = '';
+          }
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- Logout handler (needs ES module import) -->
+  <script>
+    import api from '../lib/api.js';
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      await api.logout();
+    });
+  </script>
+</body>
+</html>

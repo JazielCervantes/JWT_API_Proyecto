@@ -1,141 +1,177 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
 ---
-<Layout title="Home">
-<div class="min-h-screen relative overflow-hidden">
+<Layout title="API REST — Autenticación Moderna">
+<div class="min-h-screen">
 
-  <!-- Orbes animados de fondo -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden">
-    <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20 animate-float"
-      style="background: radial-gradient(circle, #00D4FF, transparent 70%); animation-delay: 0s;"></div>
-    <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-15 animate-float"
-      style="background: radial-gradient(circle, #9B5CFF, transparent 70%); animation-delay: 3s;"></div>
-    <div class="absolute top-[50%] left-[50%] w-[400px] h-[400px] rounded-full opacity-10 animate-float"
-      style="background: radial-gradient(circle, #FF2D9B, transparent 70%); animation-delay: 6s; transform: translate(-50%,-50%);"></div>
-  </div>
+  <!-- ── NAVBAR ────────────────────────────────── -->
+  <nav class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800">
+    <div class="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+          </svg>
+        </div>
+        <span class="font-semibold text-lg tracking-tight">API REST</span>
+      </a>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-          style="background: linear-gradient(135deg,#00D4FF,#9B5CFF);">API</div>
-        <span class="font-display font-bold text-xl">REST</span>
-      </div>
       <div class="hidden md:flex items-center gap-1">
-        <a href="/products" class="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
-        <a href="/login" class="btn-ghost text-sm px-5 py-2 ml-2">Iniciar sesión</a>
-        <a href="/register" class="btn-primary text-sm px-5 py-2 ml-1"><span>Comenzar</span></a>
+        <a href="/products" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150">Productos</a>
+        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150">API Docs</a>
       </div>
-      <!-- Mobile menu button -->
-      <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl hover:bg-white/5">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
+
+      <div class="flex items-center gap-2">
+        <ThemeToggle client:load />
+        <a href="/login" class="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150 border border-zinc-200 dark:border-zinc-700">
+          Iniciar sesión
+        </a>
+        <a href="/register" class="inline-flex px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-150">
+          Comenzar
+        </a>
+        <!-- Mobile menu -->
+        <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors" aria-label="Abrir menú">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <!-- Mobile menu -->
-    <div id="mobileMenu" class="hidden md:hidden px-6 pb-4 space-y-2">
-      <a href="/products" class="block px-4 py-2 rounded-xl hover:bg-white/5 text-sm">Productos</a>
-      <a href="/login" class="block px-4 py-2 rounded-xl hover:bg-white/5 text-sm">Iniciar sesión</a>
-      <a href="/register" class="block btn-primary text-sm text-center mt-2"><span>Comenzar gratis</span></a>
+    <div id="mobileMenu" class="hidden md:hidden px-6 pb-4 space-y-1 border-t border-zinc-200 dark:border-zinc-800 pt-3">
+      <a href="/products" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">Productos</a>
+      <a href="/login" class="block px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">Iniciar sesión</a>
+      <a href="/register" class="block px-4 py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white text-center mt-2 hover:bg-indigo-700 transition-colors">Comenzar gratis</a>
     </div>
   </nav>
 
-  <!-- Hero Section -->
-  <section class="max-w-7xl mx-auto px-6 pt-24 pb-20 text-center page-enter">
-    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-sm font-medium"
-      style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:#00D4FF">
-      <span class="w-2 h-2 rounded-full bg-neon-blue animate-pulse inline-block"></span>
-      API REST Profesional v1.0
+  <!-- ── HERO ──────────────────────────────────── -->
+  <section class="max-w-6xl mx-auto px-6 pt-20 sm:pt-28 pb-20 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20">
+      <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+      API REST Profesional v2.0
     </div>
 
-    <h1 class="font-display font-black text-6xl md:text-8xl leading-none mb-6" style="letter-spacing:-0.04em">
-      Autenticación<br>
-      <span class="gradient-text">Next Level</span>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+      Autenticación
+      <span class="text-indigo-600 dark:text-indigo-400"> moderna</span>
+      <br class="hidden sm:block" />
+      y segura
     </h1>
 
-    <p class="text-xl max-w-2xl mx-auto mb-12" style="color:rgba(240,240,255,0.5);line-height:1.7">
-      JWT + Roles + CRUD profesional. Explora una API REST moderna con documentación interactiva, 
-      paginación inteligente y seguridad de nivel empresarial.
+    <p class="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+      JWT + Roles + CRUD profesional. Una API REST con documentación interactiva,
+      paginación inteligente y seguridad empresarial.
     </p>
 
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="/register" class="btn-primary text-base px-8 py-4"><span>🚀 Crear cuenta gratis</span></a>
-      <a href="/products" class="btn-ghost text-base px-8 py-4">Ver productos</a>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/register" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 hover:-translate-y-0.5">
+        Crear cuenta gratis
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+        </svg>
+      </a>
+      <a href="/products" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 hover:-translate-y-0.5">
+        Ver productos
+      </a>
     </div>
+  </section>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-3 gap-6 max-w-2xl mx-auto mt-20 pt-12 border-t" style="border-color:rgba(255,255,255,0.06)">
-      <div>
-        <div class="stat-value gradient-text">JWT</div>
-        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">Autenticación</div>
+  <!-- ── STATS ─────────────────────────────────── -->
+  <section class="max-w-6xl mx-auto px-6 pb-20">
+    <div class="grid grid-cols-3 gap-4 sm:gap-8 max-w-xl mx-auto">
+      <div class="text-center">
+        <p class="text-2xl sm:text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">JWT</p>
+        <p class="text-xs sm:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">Autenticación</p>
       </div>
-      <div>
-        <div class="stat-value" style="background:linear-gradient(135deg,#9B5CFF,#FF2D9B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800">2</div>
-        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">Roles</div>
+      <div class="text-center">
+        <p class="text-2xl sm:text-3xl font-extrabold tracking-tight text-violet-600 dark:text-violet-400">2</p>
+        <p class="text-xs sm:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">Roles</p>
       </div>
-      <div>
-        <div class="stat-value gradient-text-green">REST</div>
-        <div class="text-sm mt-1" style="color:rgba(240,240,255,0.4)">API</div>
+      <div class="text-center">
+        <p class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">REST</p>
+        <p class="text-xs sm:text-sm font-medium text-zinc-500 dark:text-zinc-400 mt-1">API</p>
       </div>
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="max-w-7xl mx-auto px-6 pb-24">
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="glass glass-hover p-8 glow-border">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
-          style="background:rgba(0,212,255,0.1);">🔐</div>
-        <h3 class="font-display font-bold text-xl mb-3">Auth Segura</h3>
-        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+  <!-- ── FEATURES (Bento Grid) ─────────────────── -->
+  <section class="max-w-6xl mx-auto px-6 pb-24">
+    <div class="text-center mb-12">
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight mb-3">Todo lo que necesitas</h2>
+      <p class="text-zinc-500 dark:text-zinc-400 max-w-lg mx-auto">Una API completa con las mejores prácticas de seguridad y desarrollo moderno.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5">
+          <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">Auth Segura</h3>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
           JWT con access + refresh tokens. Hash bcrypt. Refresh automático cuando el token expira.
         </p>
       </div>
-      <div class="glass glass-hover p-8 glow-border">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
-          style="background:rgba(155,92,255,0.1);">👤</div>
-        <h3 class="font-display font-bold text-xl mb-3">Roles & Permisos</h3>
-        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center mb-5">
+          <svg class="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">Roles & Permisos</h3>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
           Admin y User con accesos diferenciados. Cada endpoint protegido según el rol requerido.
         </p>
       </div>
-      <div class="glass glass-hover p-8 glow-border">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-5"
-          style="background:rgba(0,255,136,0.1);">⚡</div>
-        <h3 class="font-display font-bold text-xl mb-3">CRUD + Filtros</h3>
-        <p style="color:rgba(240,240,255,0.5);line-height:1.7;font-size:0.9rem">
+
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-5">
+          <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">CRUD + Filtros</h3>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
           Paginación, búsqueda, filtros por categoría y precio. Ordenamiento dinámico.
         </p>
       </div>
     </div>
   </section>
 
-  <!-- CTA Final -->
-  <section class="max-w-7xl mx-auto px-6 pb-24">
-    <div class="glass p-12 text-center" style="background:rgba(0,212,255,0.03);border-color:rgba(0,212,255,0.15)">
-      <h2 class="font-display font-black text-4xl md:text-5xl mb-4" style="letter-spacing:-0.03em">
-        Empieza ahora
-      </h2>
-      <p class="mb-8" style="color:rgba(240,240,255,0.5)">Crea tu cuenta y explora todos los endpoints</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/register" class="btn-primary text-base px-8 py-4"><span>🚀 Crear cuenta</span></a>
-        <a href={import.meta.env.PUBLIC_API_URL + '/docs'} target="_blank" class="btn-ghost text-base px-8 py-4">
-          📖 API Docs
+  <!-- ── CTA ───────────────────────────────────── -->
+  <section class="max-w-6xl mx-auto px-6 pb-24">
+    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-10 sm:p-14 text-center">
+      <h2 class="text-2xl sm:text-4xl font-bold tracking-tight mb-3">Empieza ahora</h2>
+      <p class="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto">Crea tu cuenta y explora todos los endpoints de la API.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/register" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 shadow-md shadow-indigo-600/20">
+          Crear cuenta
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+          </svg>
+        </a>
+        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200">
+          API Docs
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+          </svg>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="border-t py-8" style="border-color:rgba(255,255,255,0.06)">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm" style="color:rgba(240,240,255,0.3)">
-      <span>© 2026 API REST — Proyecto de demostración</span>
+  <!-- ── FOOTER ────────────────────────────────── -->
+  <footer class="border-t border-zinc-200 dark:border-zinc-800 py-8">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-zinc-400 dark:text-zinc-500">
+      <span>&copy; 2026 API REST &mdash; Proyecto de demostración</span>
       <div class="flex gap-6">
-        <a href="/login" class="hover:text-white transition-colors">Login</a>
-        <a href="/register" class="hover:text-white transition-colors">Registro</a>
-        <a href="/products" class="hover:text-white transition-colors">Productos</a>
+        <a href="/login" class="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Login</a>
+        <a href="/register" class="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Registro</a>
+        <a href="/products" class="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Productos</a>
       </div>
     </div>
   </footer>
@@ -144,13 +180,7 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  // Mobile menu toggle
   document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
     document.getElementById('mobileMenu')?.classList.toggle('hidden');
   });
-
-  // Redirigir si ya está autenticado
-  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('access_token')) {
-    // Mostrar link al dashboard en el nav (opcional)
-  }
 </script>

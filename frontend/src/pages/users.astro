@@ -1,132 +1,130 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
-<Layout title="Usuarios">
-<div class="min-h-screen">
+<DashboardLayout title="Usuarios" currentPage="users">
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
-          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
-        <span class="font-display font-bold text-xl">API</span>
-      </div>
-      <div class="hidden md:flex items-center gap-1">
-        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Dashboard</a>
-        <a href="/products" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
-        <a href="/users" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(155,92,255,0.15);color:#9B5CFF">Usuarios</a>
-      </div>
-      <button id="logoutBtn" class="btn-danger text-sm px-4 py-2">Salir</button>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Usuarios</h1>
+      <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Gestión de cuentas y roles del sistema</p>
     </div>
-  </nav>
-
-  <div class="max-w-7xl mx-auto px-6 py-10">
-
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 page-enter">
-      <div>
-        <h1 class="font-display font-black text-4xl" style="letter-spacing:-0.04em">Usuarios</h1>
-        <p class="mt-2" style="color:rgba(240,240,255,0.4)">Gestión de cuentas y roles del sistema</p>
-      </div>
-      <!-- Search -->
-      <div class="flex gap-3">
+    <div class="flex gap-3">
+      <div class="relative flex-1 md:flex-none">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
         <input id="searchInput" type="text" placeholder="Buscar usuario..."
-          class="input-dark" style="min-width:220px" />
-        <button id="searchBtn" class="btn-ghost text-sm px-5">Buscar</button>
+          class="w-full md:w-[220px] pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all" />
       </div>
+      <button id="searchBtn" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">Buscar</button>
     </div>
+  </div>
 
-    <!-- Stats rápidas -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
-      <div class="glass p-5">
-        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Total usuarios</p>
-        <div id="statTotal" class="font-display font-black text-3xl gradient-text">—</div>
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+      <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Total usuarios</p>
+      <p id="statTotal" class="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">&mdash;</p>
+    </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+      <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Admins</p>
+      <p id="statAdmins" class="text-2xl font-bold tracking-tight text-violet-600 dark:text-violet-400">&mdash;</p>
+    </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+      <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Activos</p>
+      <p id="statActive" class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">&mdash;</p>
+    </div>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div id="loadingState" class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+    <div class="space-y-4">
+      <div class="skeleton h-10 w-full rounded-lg"></div>
+      <div class="skeleton h-14 w-full rounded-lg"></div>
+      <div class="skeleton h-14 w-full rounded-lg"></div>
+      <div class="skeleton h-14 w-full rounded-lg"></div>
+      <div class="skeleton h-14 w-full rounded-lg"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div id="tableContainer" class="hidden bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full" id="usersTable">
+        <thead>
+          <tr class="border-b border-zinc-200 dark:border-zinc-800">
+            <th class="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Usuario</th>
+            <th class="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Email</th>
+            <th class="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Rol</th>
+            <th class="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Estado</th>
+            <th class="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Miembro desde</th>
+            <th class="px-6 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody" class="divide-y divide-zinc-100 dark:divide-zinc-800"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" class="hidden text-center py-20">
+    <svg class="w-16 h-16 mx-auto mb-4 text-zinc-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+    <p class="text-sm text-zinc-500 dark:text-zinc-400">No se encontraron usuarios</p>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination" class="hidden flex items-center justify-center gap-4 mt-6">
+    <button id="prevBtn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+      Anterior
+    </button>
+    <span id="pageInfo" class="text-sm text-zinc-500 dark:text-zinc-400"></span>
+    <button id="nextBtn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+      Siguiente
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+    </button>
+  </div>
+
+</DashboardLayout>
+
+<!-- Role Modal -->
+<div id="roleModal" class="fixed inset-0 z-[100] hidden">
+  <div class="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm" id="roleBackdrop"></div>
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-2xl w-full max-w-sm p-6">
+      <h3 class="text-lg font-semibold tracking-tight mb-2">Cambiar Rol</h3>
+      <p id="roleModalUser" class="text-sm text-zinc-500 dark:text-zinc-400 mb-6"></p>
+      <div class="space-y-3 mb-6">
+        <button id="setUserBtn" class="w-full p-4 rounded-xl text-left border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all">
+          <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 mb-2">USER</span>
+          <p class="text-sm text-zinc-500 dark:text-zinc-400">Acceso básico a productos y perfil</p>
+        </button>
+        <button id="setAdminBtn" class="w-full p-4 rounded-xl text-left border border-violet-200 dark:border-violet-500/30 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:border-violet-300 dark:hover:border-violet-500/40 transition-all">
+          <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 mb-2">ADMIN</span>
+          <p class="text-sm text-zinc-500 dark:text-zinc-400">Acceso completo. Gestión de usuarios y productos.</p>
+        </button>
       </div>
-      <div class="glass p-5">
-        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Admins</p>
-        <div id="statAdmins" class="font-display font-black text-3xl" style="color:#9B5CFF">—</div>
-      </div>
-      <div class="glass p-5">
-        <p class="text-xs uppercase tracking-widest mb-2" style="color:rgba(240,240,255,0.3)">Activos</p>
-        <div id="statActive" class="font-display font-black text-3xl gradient-text-green">—</div>
-      </div>
+      <button id="closeRoleModal" class="w-full py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">Cancelar</button>
     </div>
-
-    <!-- Loading -->
-    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
-      <div class="spinner"></div>
-      <p style="color:rgba(240,240,255,0.4);font-size:0.9rem">Cargando usuarios...</p>
-    </div>
-
-    <!-- Table -->
-    <div id="tableContainer" class="hidden glass overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="table-dark" id="usersTable">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Miembro desde</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="usersBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Empty -->
-    <div id="emptyState" class="hidden text-center py-20" style="color:rgba(240,240,255,0.3)">
-      <div class="text-5xl mb-4">👥</div>
-      <p>No se encontraron usuarios</p>
-    </div>
-
-    <!-- Pagination -->
-    <div id="pagination" class="hidden flex items-center justify-center gap-4 mt-8">
-      <button id="prevBtn" class="btn-ghost text-sm px-5 py-2">← Anterior</button>
-      <span id="pageInfo" class="text-sm" style="color:rgba(240,240,255,0.45)"></span>
-      <button id="nextBtn" class="btn-ghost text-sm px-5 py-2">Siguiente →</button>
-    </div>
-
   </div>
 </div>
-
-<!-- Modal cambiar rol -->
-<div id="roleModal" class="modal-overlay">
-  <div class="modal-box max-w-sm">
-    <h3 class="font-display font-bold text-xl mb-2">Cambiar Rol</h3>
-    <p id="roleModalUser" class="mb-6" style="color:rgba(240,240,255,0.5)"></p>
-    <div class="space-y-3 mb-6">
-      <button id="setUserBtn" class="w-full p-4 rounded-xl text-left transition-all hover:bg-white/5"
-        style="border:1px solid rgba(255,255,255,0.08)">
-        <div class="badge-user mb-1">USER</div>
-        <p class="text-sm mt-2" style="color:rgba(240,240,255,0.5)">Acceso básico a productos y perfil</p>
-      </button>
-      <button id="setAdminBtn" class="w-full p-4 rounded-xl text-left transition-all hover:bg-white/5"
-        style="border:1px solid rgba(155,92,255,0.2)">
-        <div class="badge-admin mb-1">ADMIN</div>
-        <p class="text-sm mt-2" style="color:rgba(240,240,255,0.5)">Acceso completo. Gestión de usuarios y productos.</p>
-      </button>
-    </div>
-    <button id="closeRoleModal" class="btn-ghost w-full">Cancelar</button>
-  </div>
-</div>
-</Layout>
 
 <script>
-  import { requireAdmin, isAdmin } from '../lib/auth.js';
+  import { requireAdmin } from '../lib/auth.js';
   import api from '../lib/api.js';
 
   requireAdmin();
-  document.getElementById('logoutBtn')?.addEventListener('click', () => api.logout());
 
   let currentPage = 0;
   const limit = 15;
   let currentSearch = '';
   let selectedUserId = null;
+
+  // XSS-safe text helper
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
 
   async function loadUsers(skip = 0, search = '') {
     const loadEl = document.getElementById('loadingState');
@@ -154,40 +152,46 @@ import Layout from '../layouts/Layout.astro';
       if (!users.length) { emptyEl.classList.remove('hidden'); return; }
 
       document.getElementById('usersBody').innerHTML = users.map(u => `
-        <tr>
-          <td>
+        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+          <td class="px-6 py-4">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
-                style="background:linear-gradient(135deg,#00D4FF22,#9B5CFF22);color:#00D4FF;font-family:'Outfit',sans-serif">
-                ${u.full_name?.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?'}
+              <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                ${esc((u.full_name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase())}
               </div>
               <div>
-                <p class="font-semibold text-sm">${u.full_name}</p>
-                <p class="text-xs font-mono" style="color:rgba(240,240,255,0.4)">@${u.username}</p>
+                <p class="text-sm font-medium">${esc(u.full_name)}</p>
+                <p class="text-xs text-zinc-400 dark:text-zinc-500 font-mono">@${esc(u.username)}</p>
               </div>
             </div>
           </td>
-          <td style="color:rgba(240,240,255,0.6);font-size:0.875rem">${u.email}</td>
-          <td>
-            <span class="${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role.toUpperCase()}</span>
+          <td class="px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">${esc(u.email)}</td>
+          <td class="px-6 py-4">
+            <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${u.role === 'admin'
+              ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400'
+              : 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400'}">
+              ${esc(u.role.toUpperCase())}
+            </span>
           </td>
-          <td>
-            <span class="${u.is_active ? 'badge-success' : 'badge-danger'}">
+          <td class="px-6 py-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.is_active
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+              : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400'}">
+              <span class="w-1.5 h-1.5 rounded-full ${u.is_active ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
               ${u.is_active ? 'Activo' : 'Inactivo'}
             </span>
           </td>
-          <td style="color:rgba(240,240,255,0.4);font-size:0.8rem">
+          <td class="px-6 py-4 text-xs text-zinc-400 dark:text-zinc-500">
             ${new Date(u.created_at).toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'})}
           </td>
-          <td>
-            <div class="flex items-center gap-2">
-              <button onclick="openRoleModal(${u.id}, '${u.full_name.replace(/'/g,"\\'")}', '${u.role}')"
-                class="p-2 rounded-xl text-xs transition-all hover:bg-white/10" style="color:rgba(240,240,255,0.5)" title="Cambiar rol">
-                🔑
+          <td class="px-6 py-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button onclick="openRoleModal(${u.id}, '${esc(u.full_name).replace(/'/g,"\\'")}', '${esc(u.role)}')"
+                class="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-all" title="Cambiar rol">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
               </button>
-              <button onclick="deactivateUser(${u.id}, '${u.full_name.replace(/'/g,"\\'")}')"
-                class="p-2 rounded-xl text-xs transition-all hover:bg-red-500/10" style="color:rgba(240,240,255,0.5)" title="Desactivar">
-                🗑️
+              <button onclick="deactivateUser(${u.id}, '${esc(u.full_name).replace(/'/g,"\\'")}')"
+                class="p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-all" title="Desactivar">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
               </button>
             </div>
           </td>
@@ -196,7 +200,6 @@ import Layout from '../layouts/Layout.astro';
 
       tableEl.classList.remove('hidden');
 
-      // Pagination
       if (data.total > limit) {
         document.getElementById('pageInfo').textContent = `${skip+1}–${Math.min(skip+limit, data.total)} de ${data.total}`;
         document.getElementById('prevBtn').disabled = skip === 0;
@@ -205,12 +208,15 @@ import Layout from '../layouts/Layout.astro';
       }
 
     } catch (err) {
-      loadEl.innerHTML = `<p style="color:#FF6BA8">Error: ${err.message}</p>
-        <button onclick="loadUsers()" class="btn-ghost mt-4 text-sm">Reintentar</button>`;
+      loadEl.innerHTML = `
+        <div class="text-center py-12">
+          <p class="text-rose-600 dark:text-rose-400 font-medium mb-4">Error: ${esc(err.message)}</p>
+          <button onclick="loadUsers()" class="px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">Reintentar</button>
+        </div>`;
     }
   }
 
-  // Search
+  // Search handlers
   document.getElementById('searchBtn')?.addEventListener('click', () => {
     currentSearch = document.getElementById('searchInput').value.trim();
     currentPage = 0;
@@ -235,15 +241,21 @@ import Layout from '../layouts/Layout.astro';
   window.openRoleModal = function(id, name, currentRole) {
     selectedUserId = id;
     document.getElementById('roleModalUser').textContent = `Cambiando rol de ${name} (actual: ${currentRole})`;
-    roleModal.classList.add('active');
+    roleModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   };
+
+  function closeRoleModalFn() {
+    roleModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 
   async function changeRole(newRole) {
     if (!selectedUserId) return;
     try {
       await api.updateUserRole(selectedUserId, newRole);
       showToast(`Rol cambiado a ${newRole} ✓`, 'success');
-      roleModal.classList.remove('active');
+      closeRoleModalFn();
       loadUsers(currentPage * limit, currentSearch);
     } catch (err) {
       showToast(err.message, 'error');
@@ -252,8 +264,8 @@ import Layout from '../layouts/Layout.astro';
 
   document.getElementById('setUserBtn')?.addEventListener('click', () => changeRole('user'));
   document.getElementById('setAdminBtn')?.addEventListener('click', () => changeRole('admin'));
-  document.getElementById('closeRoleModal')?.addEventListener('click', () => roleModal.classList.remove('active'));
-  roleModal?.addEventListener('click', e => { if (e.target === roleModal) roleModal.classList.remove('active'); });
+  document.getElementById('closeRoleModal')?.addEventListener('click', closeRoleModalFn);
+  document.getElementById('roleBackdrop')?.addEventListener('click', closeRoleModalFn);
 
   // Deactivate user
   window.deactivateUser = async function(id, name) {

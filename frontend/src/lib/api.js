@@ -89,9 +89,9 @@ class APIClient {
 
   clearAuth() {
     if (typeof window === 'undefined') return;
-    sessionStorage.clear(); // Limpia sessionStorage
-    localStorage.removeItem('user'); // Limpia user info
-    // refresh_token en cookie se borra automáticamente por el servidor
+    sessionStorage.clear();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
     window.location.href = '/login';
   }
 

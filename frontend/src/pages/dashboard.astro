@@ -1,122 +1,141 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
-<Layout title="Dashboard">
-<div class="min-h-screen">
+<DashboardLayout title="Dashboard" currentPage="dashboard">
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
-          style="background:linear-gradient(135deg,#00D4FF,#9B5CFF)"></div>
-        <span class="font-display font-bold text-xl">API</span>
+  <!-- ── SKELETON LOADER ───────────────────────── -->
+  <div id="loadingState" class="space-y-6 animate-fade-in">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="skeleton h-4 w-36 mb-3"></div>
+        <div class="skeleton h-8 w-52"></div>
       </div>
-      <div class="hidden md:flex items-center gap-1">
-        <a href="/dashboard" class="px-4 py-2 rounded-xl text-sm font-medium" style="background:rgba(0,212,255,0.1);color:#00D4FF">Dashboard</a>
-        <a href="/products" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Productos</a>
-        <a href="/profile" class="px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Perfil</a>
-        <a id="adminLink" href="/users" class="hidden px-4 py-2 rounded-xl text-sm transition-all hover:bg-white/5" style="color:rgba(240,240,255,0.6)">Usuarios</a>
-      </div>
-      <div class="flex items-center gap-4">
-        <span id="userBadge" class="hidden"></span>
-        <button id="logoutBtn" class="btn-danger text-sm px-4 py-2">Salir</button>
+      <div class="flex gap-3">
+        <div class="skeleton h-10 w-36 rounded-xl"></div>
       </div>
     </div>
-  </nav>
-
-  <!-- Content -->
-  <div class="max-w-7xl mx-auto px-6 py-10">
-
-    <!-- Loading -->
-    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
-      <div class="spinner"></div>
-      <p style="color:rgba(240,240,255,0.4);font-size:0.9rem">Cargando dashboard...</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <div class="skeleton h-3 w-20 mb-4"></div>
+        <div class="skeleton h-9 w-14"></div>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <div class="skeleton h-3 w-16 mb-4"></div>
+        <div class="skeleton h-9 w-20"></div>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <div class="skeleton h-3 w-16 mb-4"></div>
+        <div class="skeleton h-9 w-20"></div>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <div class="skeleton h-3 w-12 mb-4"></div>
+        <div class="skeleton h-9 w-20"></div>
+      </div>
     </div>
-
-    <!-- Content -->
-    <div id="mainContent" class="hidden space-y-8">
-
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 page-enter">
-        <div>
-          <p class="text-sm mb-1" style="color:rgba(240,240,255,0.4)">Bienvenido de vuelta 👋</p>
-          <h1 class="font-display font-black text-4xl" style="letter-spacing:-0.03em" id="welcomeName">—</h1>
-        </div>
-        <div class="flex gap-3">
-          <a href="/products" class="btn-ghost text-sm">📦 Ver productos</a>
-          <a id="adminBtn" href="/users" class="hidden btn-primary text-sm"><span>⚙️ Admin</span></a>
-        </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+      <div class="skeleton h-6 w-48 mb-6"></div>
+      <div class="space-y-3">
+        <div class="skeleton h-16 w-full rounded-xl"></div>
+        <div class="skeleton h-16 w-full rounded-xl"></div>
+        <div class="skeleton h-16 w-full rounded-xl"></div>
       </div>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass p-6">
-          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Productos</p>
-          <div class="stat-value gradient-text" id="statProducts">0</div>
-        </div>
-        <div class="glass p-6">
-          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Tu Rol</p>
-          <div id="statRole" class="stat-value" style="font-size:1.4rem;font-family:'Outfit',sans-serif;font-weight:800">—</div>
-        </div>
-        <div class="glass p-6">
-          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">Estado</p>
-          <div class="stat-value gradient-text-green" style="font-size:1.6rem">Activo ✓</div>
-        </div>
-        <div class="glass p-6">
-          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(240,240,255,0.35)">API</p>
-          <div id="statAPI" class="stat-value gradient-text-green" style="font-size:1.6rem">—</div>
-        </div>
-      </div>
-
-      <!-- Productos recientes -->
-      <div class="glass p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="font-display font-bold text-2xl">Productos Recientes</h2>
-          <a href="/products" class="text-sm hover:underline" style="color:#00D4FF">Ver todos →</a>
-        </div>
-        <div id="recentProducts" class="space-y-3"></div>
-      </div>
-
-      <!-- Quick actions -->
-      <div class="glass p-6">
-        <h2 class="font-display font-bold text-2xl mb-5">Acciones Rápidas</h2>
-        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <a href="/products" class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
-            style="border:1px solid rgba(255,255,255,0.07)">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style="background:rgba(0,212,255,0.1)">📦</div>
-            <div>
-              <p class="font-semibold text-sm">Catálogo</p>
-              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Ver productos</p>
-            </div>
-          </a>
-          <a href="/profile" class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
-            style="border:1px solid rgba(255,255,255,0.07)">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style="background:rgba(155,92,255,0.1)">👤</div>
-            <div>
-              <p class="font-semibold text-sm">Mi Perfil</p>
-              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Editar cuenta</p>
-            </div>
-          </a>
-          <a href={import.meta.env.PUBLIC_API_URL + '/docs'} target="_blank"
-            class="group flex items-center gap-4 p-4 rounded-2xl transition-all hover:bg-white/5"
-            style="border:1px solid rgba(255,255,255,0.07)">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style="background:rgba(0,255,136,0.1)">📖</div>
-            <div>
-              <p class="font-semibold text-sm">API Docs</p>
-              <p class="text-xs" style="color:rgba(240,240,255,0.4)">Swagger UI</p>
-            </div>
-          </a>
-        </div>
-      </div>
-
     </div>
   </div>
-</div>
-</Layout>
+
+  <!-- ── MAIN CONTENT ──────────────────────────── -->
+  <div id="mainContent" class="hidden space-y-6 animate-fade-in">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Bienvenido de vuelta 👋</p>
+        <h1 class="text-2xl font-bold tracking-tight" id="welcomeName">&mdash;</h1>
+      </div>
+      <div class="flex gap-3">
+        <a href="/products" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          Ver productos
+        </a>
+        <a id="adminBtn" href="/users" style="display:none" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-600/20">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Admin
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Productos</p>
+        <p class="text-3xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400" id="statProducts">0</p>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Tu Rol</p>
+        <div class="flex items-center gap-2">
+          <span id="roleBadge" class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold"></span>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Estado</p>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Activo</span>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">API</p>
+        <div class="flex items-center gap-2">
+          <span id="apiDot" class="w-2 h-2 rounded-full bg-zinc-300"></span>
+          <span id="statAPI" class="text-sm font-semibold">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold tracking-tight">Productos Recientes</h2>
+        <a href="/products" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Ver todos &rarr;</a>
+      </div>
+      <div id="recentProducts" class="space-y-2"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+      <h2 class="text-lg font-semibold tracking-tight mb-5">Acciones Rápidas</h2>
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <a href="/products" class="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold">Catálogo</p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Ver productos</p>
+          </div>
+        </a>
+        <a href="/profile" class="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200">
+          <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold">Mi Perfil</p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Editar cuenta</p>
+          </div>
+        </a>
+        <a href={(import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/docs'} target="_blank" rel="noopener" class="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold">API Docs</p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Swagger UI</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</DashboardLayout>
 
 <script>
   import { requireAuth, getUser, isAdmin } from '../lib/auth.js';
@@ -127,25 +146,24 @@ import Layout from '../layouts/Layout.astro';
   const user = getUser();
   if (!user) window.location.href = '/login';
 
-  // Setup nav
+  // Show admin button
   if (isAdmin()) {
-    document.getElementById('adminLink')?.classList.remove('hidden');
-    document.getElementById('adminBtn')?.classList.remove('hidden');
+    const adminBtn = document.getElementById('adminBtn');
+    if (adminBtn) adminBtn.style.display = '';
   }
 
-  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await api.logout();
-  });
-
-  // Render user info
+  // Set user info
   document.getElementById('welcomeName').textContent = user?.full_name || '—';
-  
-  const badge = document.getElementById('userBadge');
-  badge.className = user?.role === 'admin' ? 'badge-admin' : 'badge-user';
-  badge.textContent = user?.role?.toUpperCase();
-  badge.classList.remove('hidden');
 
-  document.getElementById('statRole').textContent = user?.role === 'admin' ? '👑 Admin' : '👤 User';
+  // Role badge
+  const roleBadge = document.getElementById('roleBadge');
+  if (user?.role === 'admin') {
+    roleBadge.textContent = 'Admin';
+    roleBadge.className = 'inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400';
+  } else {
+    roleBadge.textContent = 'User';
+    roleBadge.className = 'inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400';
+  }
 
   // Counter animation
   function animateCount(el, target, duration = 800) {
@@ -160,46 +178,62 @@ import Layout from '../layouts/Layout.astro';
     requestAnimationFrame(update);
   }
 
+  // XSS-safe text helper
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
   // Load data
   async function loadDashboard() {
     try {
-      // Check API status
-      const health = await fetch(import.meta.env.PUBLIC_API_URL + '/health');
-      document.getElementById('statAPI').textContent = health.ok ? 'Online ✓' : 'Error ✗';
+      // API health
+      const health = await fetch((import.meta.env.PUBLIC_API_URL || 'http://localhost:8000') + '/health');
+      const apiDot = document.getElementById('apiDot');
+      const apiText = document.getElementById('statAPI');
+      if (health.ok) {
+        apiDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        apiText.textContent = 'Online';
+        apiText.className = 'text-sm font-semibold text-emerald-600 dark:text-emerald-400';
+      } else {
+        apiDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        apiText.textContent = 'Error';
+        apiText.className = 'text-sm font-semibold text-rose-600 dark:text-rose-400';
+      }
 
-      // Load products
+      // Products
       const data = await api.getProducts({ limit: 5 });
-      
       animateCount(document.getElementById('statProducts'), data.total);
 
       const recentDiv = document.getElementById('recentProducts');
       if (data.products.length > 0) {
         recentDiv.innerHTML = data.products.map(p => `
-          <div class="flex items-center justify-between p-4 rounded-xl transition-all hover:bg-white/5" 
-            style="border:1px solid rgba(255,255,255,0.05)">
+          <div class="flex items-center justify-between p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                style="background:rgba(0,212,255,0.08)">📦</div>
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              </div>
               <div>
-                <p class="font-semibold text-sm">${p.name}</p>
-                <p class="text-xs" style="color:rgba(240,240,255,0.4)">${p.category || 'Sin categoría'}</p>
+                <p class="text-sm font-medium">${esc(p.name)}</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">${esc(p.category || 'Sin categoría')}</p>
               </div>
             </div>
             <div class="flex items-center gap-4">
-              <span class="font-display font-bold" style="color:#00D4FF">$${p.price}</span>
-              <span class="${p.stock > 0 ? 'badge-success' : 'badge-danger'}">
-                ${p.stock > 0 ? `${p.stock} uds` : 'Agotado'}
+              <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">$${esc(String(p.price))}</span>
+              <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${p.stock > 0
+                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400'}">
+                ${p.stock > 0 ? esc(String(p.stock)) + ' uds' : 'Agotado'}
               </span>
             </div>
           </div>
         `).join('');
       } else {
         recentDiv.innerHTML = `
-          <div class="text-center py-8" style="color:rgba(240,240,255,0.3)">
-            <p class="text-4xl mb-2">📦</p>
-            <p>No hay productos aún. 
-              <a href="/products" style="color:#00D4FF" class="hover:underline">Créa uno</a>
-            </p>
+          <div class="text-center py-8 text-zinc-400 dark:text-zinc-500">
+            <svg class="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+            <p>No hay productos aún. <a href="/products" class="text-indigo-600 dark:text-indigo-400 hover:underline">Crea uno</a></p>
           </div>`;
       }
 
@@ -208,8 +242,11 @@ import Layout from '../layouts/Layout.astro';
     } catch (err) {
       console.error(err);
       document.getElementById('loadingState').innerHTML = `
-        <p style="color:#FF6BA8">Error al cargar. Verifica que el backend esté corriendo.</p>
-        <button onclick="location.reload()" class="btn-ghost mt-4 text-sm">Reintentar</button>`;
+        <div class="text-center py-20">
+          <svg class="w-12 h-12 mx-auto mb-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+          <p class="text-rose-600 dark:text-rose-400 font-medium mb-4">Error al cargar. Verifica que el backend esté corriendo.</p>
+          <button onclick="location.reload()" class="px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">Reintentar</button>
+        </div>`;
     }
   }
 

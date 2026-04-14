@@ -39,9 +39,9 @@ export function isAdmin() {
 
 export function clearAuth() {
   if (typeof window !== 'undefined') {
-    sessionStorage.clear(); // Limpia sessionStorage (access token)
-    localStorage.removeItem('user'); // Limpia datos del usuario
-    // refresh_token en HTTP-Only cookie se borra automáticamente por servidor
+    sessionStorage.clear();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
   }
 }
 

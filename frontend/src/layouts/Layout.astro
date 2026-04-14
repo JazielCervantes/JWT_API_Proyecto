@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
-const { title = 'API', description = 'API REST Profesional con JWT' } = Astro.props;
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
+
+const { title = 'API REST', description = 'API REST Profesional con JWT' } = Astro.props;
 ---
 <!doctype html>
 <html lang="es">
@@ -10,30 +12,48 @@ const { title = 'API', description = 'API REST Profesional con JWT' } = Astro.pr
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/jwt.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <title>{title} — API</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet" />
+  <title>{title}</title>
+  <script is:inline>
+    (function(){
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
 </head>
-<body class="bg-mesh min-h-screen">
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans antialiased min-h-screen">
   <slot />
-  <div id="toast-container"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 </body>
 </html>
 
 <script is:inline>
-  // Sistema de notificaciones Toast global
-  window.showToast = function(message, type = 'info', duration = 3500) {
-    const container = document.getElementById('toast-container');
-    const icons = { success: '✓', error: '✕', info: 'ℹ' };
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+  window.showToast = function(message, type, duration) {
+    type = type || 'info';
+    duration = duration || 3500;
+    var container = document.getElementById('toast-container');
+    var styles = {
+      success: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+      error: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400',
+      info: 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400'
+    };
+    var icons = { success: '\u2713', error: '\u2715', info: '\u2139' };
+    var toast = document.createElement('div');
+    toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium shadow-lg max-w-sm ' + (styles[type] || styles.info);
+    toast.style.animation = 'slideUp 0.3s ease-out';
+    toast.innerHTML = '<span class="text-base">' + (icons[type] || '\u2139') + '</span><span>' + message + '</span>';
     container.appendChild(toast);
-    setTimeout(() => {
+    setTimeout(function() {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(20px)';
-      toast.style.transition = 'all 0.3s';
-      setTimeout(() => toast.remove(), 300);
+      toast.style.transform = 'translateY(8px)';
+      toast.style.transition = 'all 0.2s ease';
+      setTimeout(function() { toast.remove(); }, 200);
     }, duration);
   };
 </script>
