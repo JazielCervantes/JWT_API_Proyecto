@@ -15,6 +15,11 @@ from app.core.exceptions import (
     ResourceNotFound,
     ProductNotFound,
     RefreshTokenRevoked,
+<<<<<<< Updated upstream
+=======
+    WeakPassword,
+    DatabaseError,
+>>>>>>> Stashed changes
 )
 
 __all__ = [
@@ -30,4 +35,9 @@ __all__ = [
     "ResourceNotFound",
     "ProductNotFound",
     "RefreshTokenRevoked",
+<<<<<<< Updated upstream
+=======
+    "WeakPassword",
+    "DatabaseError",
+>>>>>>> Stashed changes
 ]

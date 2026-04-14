@@ -205,3 +205,57 @@ def get_optional_user(
     
     except Exception:
         return None
+
+
+# ==============================================================================
+# INYECCIÓN DE REPOSITORIOS (FASE 3)
+# ==============================================================================
+
+def get_user_repository(db: Session = Depends(get_db)):
+    """
+    Inyección de dependencia para UserRepository.
+    
+    Proporciona una instancia del repositorio de usuarios
+    con la sesión de BD inyectada.
+    
+    Uso en rutas:
+        from app.repositories import UserRepository
+        
+        @app.get("/users")
+        def list_users(repo: UserRepository = Depends(get_user_repository)):
+            users, total = repo.get_all()
+            return {"users": users, "total": total}
+    
+    Args:
+        db: Sesión de base de datos
+    
+    Returns:
+        Instancia de UserRepository
+    """
+    from app.repositories import UserRepository
+    return UserRepository(db)
+
+
+def get_product_repository(db: Session = Depends(get_db)):
+    """
+    Inyección de dependencia para ProductRepository.
+    
+    Proporciona una instancia del repositorio de productos
+    con la sesión de BD inyectada.
+    
+    Uso en rutas:
+        from app.repositories import ProductRepository
+        
+        @app.get("/products")
+        def list_products(repo: ProductRepository = Depends(get_product_repository)):
+            products, total = repo.get_all()
+            return {"products": products, "total": total}
+    
+    Args:
+        db: Sesión de base de datos
+    
+    Returns:
+        Instancia de ProductRepository
+    """
+    from app.repositories import ProductRepository
+    return ProductRepository(db)

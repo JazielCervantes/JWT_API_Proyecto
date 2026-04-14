@@ -1,10 +1,21 @@
 """
 Rutas de autenticación.
 Endpoints para registro, login, refresh y logout.
+
+⭐ FASE 3 REFACTORING:
+- AuthService inyecta UserRepository
+- Rutas usan AuthService como instancia
+- Dependencias manejan la inyección automáticamente
+- Código más testeable y mantenible
 """
+<<<<<<< Updated upstream
 from fastapi import APIRouter, Depends, status
+=======
+from fastapi import APIRouter, Depends, Request, status, Response
+>>>>>>> Stashed changes
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.repositories import UserRepository
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import (
     LoginRequest,
@@ -13,8 +24,14 @@ from app.schemas.auth import (
     MessageResponse
 )
 from app.services.auth_service import AuthService
+<<<<<<< Updated upstream
 from app.utils.dependencies import get_current_user
 from app.core import logger
+=======
+from app.utils.dependencies import get_current_user, get_user_repository
+from app.core import logger
+from app.middleware import limiter
+>>>>>>> Stashed changes
 from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
@@ -29,16 +46,18 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
     Crea un nuevo usuario en el sistema.
     
     - Email y username deben ser únicos
-    - La contraseña debe tener mínimo 6 caracteres
+    - Contraseña FUERTE: 8+ caracteres, mayúscula, minúscula, número, carácter especial
     - Se asigna automáticamente el rol 'user'
     """
 )
+@limiter.limit("3/hour")  # Max 3 registros por hora por IP
 def register(
+    request: Request,
     user_data: UserCreate,
-    db: Session = Depends(get_db)
+    user_repo: UserRepository = Depends(get_user_repository)
 ):
     """
-    Endpoint de registro de usuarios.
+    Endpoint de registro de usuarios con rate limiting (3/hora).
     
     **Ejemplo de request:**
     ```json
@@ -50,7 +69,9 @@ def register(
     }
     ```
     """
-    return AuthService.register_user(db, user_data)
+    # Crear instancia del servicio con repositorio inyectado
+    auth_service = AuthService(user_repo)
+    return auth_service.register_user(user_data)
 
 
 @router.post(
@@ -60,36 +81,44 @@ def register(
     description="""
     Autentica al usuario y retorna tokens JWT.
     
-    - Puedes usar email o username para iniciar sesión
-    - Retorna access token (corta duración) y refresh token (larga duración)
-    - El access token debe incluirse en el header Authorization: Bearer <token>
+    - Rate limit: 5 intentos/minuto por IP
+    - Refresh token se guarda en HTTP-Only cookie (seguro contra XSS)
+    - Access token se retorna en JSON body
+    - El access token debe incluirse en el header: Authorization: Bearer <token>
     """
 )
+@limiter.limit("5/minute")  # Max 5 intentos por minuto por IP (brute force protection)
 def login(
+    request: Request,
     credentials: LoginRequest,
-    db: Session = Depends(get_db)
+    user_repo: UserRepository = Depends(get_user_repository),
+    response: Response = None
 ):
     """
-    Endpoint de login.
-    
-    **Ejemplo de request:**
-    ```json
-    {
-        "username": "usuario123",
-        "password": "contraseña123"
-    }
-    ```
-    
-    **Ejemplo de response:**
-    ```json
-    {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        "token_type": "bearer"
-    }
-    ```
+    Endpoint de login con rate limiting (5/minuto) y HTTP-Only cookies.
     """
-    return AuthService.login(db, credentials.username, credentials.password)
+    # Crear instancia del servicio con repositorio inyectado
+    auth_service = AuthService(user_repo)
+    
+    # Autenticar y obtener tokens
+    tokens = auth_service.login(credentials.username, credentials.password)
+    
+    # ✅ Guardar refresh token en HTTP-Only cookie (protección contra XSS)
+    response.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        max_age=7*24*60*60,  # 7 días
+        httponly=True,       # JavaScript NO puede acceder
+        secure=True,         # HTTPS only
+        samesite="strict"    # CSRF protection
+    )
+    
+    # ✅ Retornar solo access_token en JSON (refresh está en cookie)
+    return TokenResponse(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token,  # Frontend puede ignorar esto
+        token_type="bearer"
+    )
 
 
 @router.post(
@@ -99,26 +128,48 @@ def login(
     description="""
     Obtiene un nuevo access token usando el refresh token.
     
-    - Usa esto cuando el access token expire
-    - El refresh token tiene mayor duración
-    - Retorna nuevos access y refresh tokens
+    - Rate limit: 10 intentos/minuto
+    - El refresh token se obtiene de la cookie HTTP-Only
+    - Retorna nuevo access token + refresh token
     """
 )
+@limiter.limit("10/minute")  # Rate limit para refresh
 def refresh_token(
+    request: Request,
     token_request: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    user_repo: UserRepository = Depends(get_user_repository),
+    response: Response = None
 ):
     """
-    Endpoint para refrescar tokens.
-    
-    **Ejemplo de request:**
-    ```json
-    {
-        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-    ```
+    Endpoint para refrescar tokens con rate limiting.
+    Obtiene el refresh token de la cookie HTTP-Only.
     """
-    return AuthService.refresh_access_token(db, token_request.refresh_token)
+    # Crear instancia del servicio
+    auth_service = AuthService(user_repo)
+    
+    # Intentar obtener refresh token de:
+    # 1. Cookie HTTP-Only (preferido)
+    # 2. Body JSON (fallback para compatibilidad)
+    refresh_token_value = request.cookies.get("refresh_token") or token_request.refresh_token
+    
+    # Refrescar
+    tokens = auth_service.refresh_access_token(refresh_token_value)
+    
+    # ✅ Actualizar cookie con nuevo refresh token
+    response.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        max_age=7*24*60*60,
+        httponly=True,
+        secure=True,
+        samesite="strict"
+    )
+    
+    return TokenResponse(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token,
+        token_type="bearer"
+    )
 
 
 @router.post(
@@ -134,7 +185,7 @@ def refresh_token(
 )
 def logout(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    user_repo: UserRepository = Depends(get_user_repository)
 ):
     """
     Endpoint de logout.
@@ -144,7 +195,9 @@ def logout(
     Authorization: Bearer <access_token>
     ```
     """
-    AuthService.logout(db, current_user)
+    # Crear instancia del servicio
+    auth_service = AuthService(user_repo)
+    auth_service.logout(current_user)
     return MessageResponse(message="Sesión cerrada exitosamente")
 
 

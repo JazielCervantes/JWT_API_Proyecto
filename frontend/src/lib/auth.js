@@ -1,8 +1,17 @@
 // Utilidades de autenticación en JavaScript puro
+//
+// FASE 5 REFACTORING - SEGURIDAD MEJORADA:
+// - Access token: sessionStorage (elimina al cerrar pestaña)
+// - Refresh token: HTTP-Only cookie (servidor lo maneja)
+// - User data: localStorage (no-sensitivo, información de usuario)
 
+/**
+ * Verifica si el usuario está autenticado.
+ * Revisa sessionStorage para el access token.
+ */
 export function isAuthenticated() {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('access_token');
+  return !!sessionStorage.getItem('access_token');
 }
 
 export function getUser() {
@@ -24,7 +33,11 @@ export function isAdmin() {
 }
 
 export function clearAuth() {
-  if (typeof window !== 'undefined') localStorage.clear();
+  if (typeof window !== 'undefined') {
+    sessionStorage.clear(); // Limpia sessionStorage (access token)
+    localStorage.removeItem('user'); // Limpia datos del usuario
+    // refresh_token en HTTP-Only cookie se borra automáticamente por servidor
+  }
 }
 
 export function requireAuth() {

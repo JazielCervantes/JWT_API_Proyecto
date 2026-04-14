@@ -2,12 +2,14 @@
 Utilidades de seguridad.
 Manejo de contraseñas hasheadas y tokens JWT.
 """
+import re
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.config import settings
 from app.models.user import UserRole
+from app.core import WeakPassword, logger
 
 # Contexto para hashear contraseñas con bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -29,6 +31,40 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         True
     """
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def validate_password_strength(password: str) -> bool:
+    """
+    Valida que una contraseña cumpla requisitos de seguridad.
+    
+    Requisitos:
+    - Mínimo 8 caracteres
+    - Al menos 1 mayúscula
+    - Al menos 1 minúscula
+    - Al menos 1 número
+    - Al menos 1 carácter especial (@$!%*?&)
+    
+    Args:
+        password: Contraseña a validar
+    
+    Returns:
+        True si es segura, False si no
+    
+    Raises:
+        WeakPassword: Si no cumple requisitos
+    
+    Ejemplo:
+        >>> validate_password_strength("SecurePass123!")
+        True
+    """
+    # Patrón: UPPER+lower+digit+special, mínimo 8 caracteres
+    pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+    
+    if not re.match(pattern, password):
+        logger.warning("Intento de registrar contraseña débil")
+        raise WeakPassword()
+    
+    return True
 
 
 def get_password_hash(password: str) -> str:

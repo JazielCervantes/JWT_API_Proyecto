@@ -150,7 +150,7 @@ import Layout from '../layouts/Layout.astro';
   });
 
   // Redirigir si ya está autenticado
-  if (localStorage.getItem('access_token')) {
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('access_token')) {
     // Mostrar link al dashboard en el nav (opcional)
   }
 </script>

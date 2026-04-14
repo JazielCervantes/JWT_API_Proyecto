@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # JWT (JSON Web Tokens)
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # 15 minutos (más seguro)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # CORS - Lista de orígenes permitidos para hacer peticiones

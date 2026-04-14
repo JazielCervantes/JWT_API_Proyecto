@@ -2,7 +2,8 @@
 Schemas de Usuario usando Pydantic.
 Define cómo se validan y serializan los datos de usuarios.
 """
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+import re
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime
 from app.models.user import UserRole
@@ -16,14 +17,46 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description="Email del usuario")
     username: str = Field(..., min_length=3, max_length=50, description="Nombre de usuario")
     full_name: str = Field(..., min_length=2, max_length=100, description="Nombre completo")
+    
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        """Username solo puede tener letras, números y guiones bajos."""
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username solo puede contener letras, números y guiones bajos (_)")
+        return v
 
 
 class UserCreate(UserBase):
     """
     Schema para crear un usuario.
     Se usa en el endpoint de registro.
+    Contraseña FUERTE (8+, UPPER+lower+digit+special).
     """
-    password: str = Field(..., min_length=6, max_length=100, description="Contraseña (mínimo 6 caracteres)")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Contraseña fuerte (mín 8 caracteres, debe incluir mayúscula, minúscula, número, carácter especial)"
+    )
+    
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v):
+        """
+        Valida que la contraseña sea fuerte:
+        - Mínimo 8 caracteres
+        - Al menos 1 mayúscula
+        - Al menos 1 minúscula
+        - Al menos 1 número
+        - Al menos 1 carácter especial (@$!%*?&)
+        """
+        pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                "Contraseña débil. Requiere: mayúscula, minúscula, número, carácter especial (@$!%*?&)"
+            )
+        return v
     
     model_config = ConfigDict(
         json_schema_extra={
@@ -31,7 +64,7 @@ class UserCreate(UserBase):
                 "email": "usuario@ejemplo.com",
                 "username": "usuario123",
                 "full_name": "Juan Pérez",
-                "password": "contraseña123"
+                "password": "SecurePass123!"
             }
         }
     )
@@ -45,8 +78,29 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     full_name: Optional[str] = Field(None, min_length=2, max_length=100)
-    password: Optional[str] = Field(None, min_length=6, max_length=100)
+    password: Optional[str] = Field(None, min_length=8, max_length=128)
     is_active: Optional[bool] = None
+    
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        """Username solo puede tener letras, números y guiones bajos."""
+        if v is not None and not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username solo puede contener letras, números y guiones bajos (_)")
+        return v
+    
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v):
+        """Valida contraseña si se proporciona."""
+        if v is not None:
+            pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+            if not re.match(pattern, v):
+                raise ValueError(
+                    "Contraseña débil. Requiere: mayúscula, minúscula, número, carácter especial (@$!%*?&)"
+                )
+        return v
+    
     
     model_config = ConfigDict(
         json_schema_extra={
