@@ -352,10 +352,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     try {
       if (editingId) {
         await api.updateProduct(editingId, productData);
-        showToast('Producto actualizado ✓', 'success');
+        showToast('Producto actualizado', 'success');
       } else {
         await api.createProduct(productData);
-        showToast('Producto creado ✓', 'success');
+        showToast('Producto creado', 'success');
       }
       closeModalFn();
       loadProducts(currentPage * limit, currentSearch, currentSort);

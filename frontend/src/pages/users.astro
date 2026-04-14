@@ -254,7 +254,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     if (!selectedUserId) return;
     try {
       await api.updateUserRole(selectedUserId, newRole);
-      showToast(`Rol cambiado a ${newRole} ✓`, 'success');
+      showToast(`Rol cambiado a ${newRole}`, 'success');
       closeRoleModalFn();
       loadUsers(currentPage * limit, currentSearch);
     } catch (err) {
@@ -272,7 +272,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     if (!confirm(`¿Desactivar la cuenta de "${name}"? Podrá ser reactivada desde la base de datos.`)) return;
     try {
       await api.deleteUser(id);
-      showToast(`Usuario "${name}" desactivado ✓`, 'success');
+      showToast(`Usuario "${name}" desactivado`, 'success');
       loadUsers(currentPage * limit, currentSearch);
     } catch (err) {
       showToast(err.message, 'error');

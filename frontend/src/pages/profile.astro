@@ -238,7 +238,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       saveUser(updated);
       user = updated;
       renderUser(updated);
-      showToast('Perfil actualizado ✓', 'success');
+      showToast('Perfil actualizado', 'success');
       document.getElementById('toggleEditBtn').click();
     } catch (err) {
       errEl.textContent = err.message;
@@ -282,7 +282,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
     try {
       await api.changePassword(document.getElementById('currentPass').value, newPass);
-      showToast('Contraseña actualizada ✓', 'success');
+      showToast('Contraseña actualizada', 'success');
       document.getElementById('passForm').reset();
       document.getElementById('togglePassBtn').click();
     } catch (err) {
