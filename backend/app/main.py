@@ -100,9 +100,9 @@ app = FastAPI(
     
     ## Versiones Soportadas
     
-    - **v1** (actual): `/api/v1/` - Arquitectura con Repositorios e inyección de dependencias
+    - **v1** : `/api/v1/` - Arquitectura con Repositorios e inyección de dependencias
     
-    ## v2.0 - Frontend SaaS Redesign
+    ## v2.0 (actual) - Frontend SaaS Redesign
     
     * Nuevo frontend con diseño minimalista SaaS (Astro + Vue + TailwindCSS)
     * Modo claro/oscuro con persistencia
