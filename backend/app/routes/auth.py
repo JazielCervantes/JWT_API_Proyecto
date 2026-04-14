@@ -8,11 +8,7 @@ Endpoints para registro, login, refresh y logout.
 - Dependencias manejan la inyección automáticamente
 - Código más testeable y mantenible
 """
-<<<<<<< Updated upstream
-from fastapi import APIRouter, Depends, status
-=======
 from fastapi import APIRouter, Depends, Request, status, Response
->>>>>>> Stashed changes
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.repositories import UserRepository
@@ -24,14 +20,9 @@ from app.schemas.auth import (
     MessageResponse
 )
 from app.services.auth_service import AuthService
-<<<<<<< Updated upstream
-from app.utils.dependencies import get_current_user
-from app.core import logger
-=======
 from app.utils.dependencies import get_current_user, get_user_repository
 from app.core import logger
 from app.middleware import limiter
->>>>>>> Stashed changes
 from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])

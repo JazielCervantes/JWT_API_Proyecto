@@ -15,10 +15,7 @@ from app.config import settings
 from app.database import get_db, init_db
 from app.core import logger, AppException
 from app.core.constants import ERROR_MESSAGES
-<<<<<<< Updated upstream
-=======
 from app.middleware import limiter, security_headers_middleware, rate_limit_exception_handler
->>>>>>> Stashed changes
 
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
@@ -31,7 +28,6 @@ async def lifespan(app: FastAPI):
     Se ejecuta al inicio y al final de la aplicación.
     """
     # Código de inicio
-<<<<<<< Updated upstream
     logger.info("🚀 Iniciando aplicación...")
     
     # Inicializar base de datos
@@ -44,29 +40,11 @@ async def lifespan(app: FastAPI):
     
     logger.info("✅ Aplicación iniciada correctamente")
     logger.info(f"📖 Documentación disponible en: http://localhost:8000/docs")
-=======
-    logger.info("Iniciando aplicación...")
-    
-    # Inicializar base de datos
-    logger.info("Inicializando base de datos...")
-    init_db()
-    
-    # Crear usuario admin si no existe
-    logger.info("Verificando usuario administrador...")
-    create_admin_if_not_exists()
-    
-    logger.info("Aplicación iniciada correctamente")
-    logger.info(f"Documentación disponible en: http://localhost:8000/docs")
->>>>>>> Stashed changes
     
     yield
     
     # Código de limpieza (al cerrar)
-<<<<<<< Updated upstream
     logger.info("👋 Cerrando aplicación...")
-=======
-    logger.info("Cerrando aplicación...")
->>>>>>> Stashed changes
 
 
 async def logging_middleware(request: Request, call_next):
@@ -200,11 +178,6 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los headers
 )
 
-<<<<<<< Updated upstream
-# ✅ Agregar middleware de logging (debe estar DESPUÉS de CORS en el stack)
-app.middleware("http")(logging_middleware)
-
-=======
 # ✅ Agregar middleware de security headers
 app.middleware("http")(security_headers_middleware)
 
@@ -216,8 +189,6 @@ app.state.limiter = limiter
 
 # ✅ Agregar exception handler para rate limit
 app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
-
->>>>>>> Stashed changes
 
 # ✅ Manejador para AppException personalizada
 @app.exception_handler(AppException)
