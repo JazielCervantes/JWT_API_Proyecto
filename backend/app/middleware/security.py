@@ -36,6 +36,10 @@ async def security_headers_middleware(request: Request, call_next):
     """
     Middleware que agrega headers de seguridad a todas las responses.
     Protege contra: MIME sniffing, clickjacking, XSS, CSRF, etc.
+    
+    Notas:
+    - Las rutas /docs, /redoc y /openapi.json tienen CSP permisivo (permiten CDN)
+    - El resto de rutas tienen CSP restrictivo
     """
     response = await call_next(request)
     
@@ -51,8 +55,31 @@ async def security_headers_middleware(request: Request, call_next):
     # HTTPS only (HSTS) - máximo 1 año
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     
-    # Content Security Policy - restrictivo pero funcional
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'"
+    # Content Security Policy - adaptado según la ruta
+    # Las rutas de documentación necesitan acceso a CDN para Swagger UI
+    if request.url.path in ["/docs", "/redoc", "/openapi.json"] or \
+       request.url.path.startswith("/docs") or \
+       request.url.path.startswith("/redoc") or \
+       request.url.path.startswith("/openapi"):
+        # CSP permisivo para documentación (requiere CDN)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self' https:; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
+            "connect-src 'self' https:"
+        )
+    else:
+        # CSP restrictivo para el resto de rutas
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self'; "
+            "connect-src 'self'"
+        )
     
     # Referrer Policy
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

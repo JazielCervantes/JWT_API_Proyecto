@@ -16,12 +16,17 @@ class APIClient {
   }
 
   /**
-   * Obtiene access token de sessionStorage (en memoria, no persiste).
-   * 🔒 Seguro contra XSS porque no está en localStorage
+   * Obtiene access token de sessionStorage o localStorage.
+   * sessionStorage es para esta sesión; localStorage es persistente.
+   * 🔒 En producción, considera usar solo sessionStorage por seguridad max.
    */
   getAccessToken() {
     if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('access_token');
+    // Probar sessionStorage primero (sesión actual)
+    const sessionToken = sessionStorage.getItem('access_token');
+    if (sessionToken) return sessionToken;
+    // Fallback a localStorage (persistente entre recargas)
+    return localStorage.getItem('access_token');
   }
 
   /**
@@ -36,21 +41,19 @@ class APIClient {
 
   /**
    * Guarda tokens de forma segura:
-   * - Access token: sessionStorage (en memoria, se borra al cerrar pestaña)
-   * - Refresh token: NO guardar (llega en HTTP-Only cookie del servidor)
+   * - Access token: sessionStorage Y localStorage (ambos para robustez)
+   * - Refresh token: No guardar manualmente (llega en HTTP-Only cookie)
    */
   saveTokens(accessToken, refreshToken) {
     if (typeof window === 'undefined') return;
     
-    // ✅ Guardar solo el access token en sessionStorage
-    // Se borra automáticamente cuando cierre la pestaña
+    // ✅ Guardar access token en ambos storages
     if (accessToken) {
       sessionStorage.setItem('access_token', accessToken);
+      localStorage.setItem('access_token', accessToken); // Persistente entre recargas
     }
     
-    // ❌ NO guardar refresh_token en storage
-    // Llega en HTTP-Only cookie que el navegador envía automáticamente
-    // El servidor maneja la rotación segura
+    // ❌ NO guardar refresh_token - llega en HTTP-Only cookie automáticamente
   }
 
   async refreshAccessToken() {
@@ -241,6 +244,10 @@ class APIClient {
     return this.request('/products/categories/list', { requiresAuth: false });
   }
 
+  async getBrands() {
+    return this.request('/products/brands/list', { requiresAuth: false });
+  }
+
   // ── USERS (Admin) ─────────────────────────────
   async getUsers(params = {}) {
     const query = new URLSearchParams();
@@ -262,11 +269,11 @@ class APIClient {
   }
 
   async updateProfile(data) {
-    return this.request('/auth/me', { method: 'PUT', body: JSON.stringify(data) });
+    return this.request('/users/me', { method: 'PUT', body: JSON.stringify(data) });
   }
 
   async changePassword(currentPassword, newPassword) {
-    return this.request('/auth/me/change-password', {
+    return this.request('/users/me/change-password', {
       method: 'POST',
       body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     });

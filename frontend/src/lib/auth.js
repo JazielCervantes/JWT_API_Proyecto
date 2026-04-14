@@ -7,11 +7,16 @@
 
 /**
  * Verifica si el usuario está autenticado.
- * Revisa sessionStorage para el access token.
+ * Busca en sessionStorage (prioridad) y localStorage (fallback).
+ * sessionStorage es para esta sesión; localStorage es persistente entre pestañas.
  */
 export function isAuthenticated() {
   if (typeof window === 'undefined') return false;
-  return !!sessionStorage.getItem('access_token');
+  // Probar primero sessionStorage (sesión actual)
+  if (sessionStorage.getItem('access_token')) return true;
+  // Fallback a localStorage (entre recargas/pestañas)
+  if (localStorage.getItem('access_token')) return true;
+  return false;
 }
 
 export function getUser() {

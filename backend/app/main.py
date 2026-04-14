@@ -165,24 +165,21 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-origins = [
-    "https://jwt-api-frontend.vercel.app",  # tu frontend en producción
-]
-
-# Configurar CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,  # Lista de orígenes permitidos
-    allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permite todos los headers
-)
-
-# ✅ Agregar middleware de security headers
+# ✅ Agregar middleware de security headers (ejecuta TERCERO)
 app.middleware("http")(security_headers_middleware)
 
-# ✅ Agregar middleware de logging (debe estar DESPUÉS de CORS en el stack)
+# ✅ Agregar middleware de logging (ejecuta SEGUNDO)
 app.middleware("http")(logging_middleware)
+
+# 🔒 Configurar CORS desde settings - DEBE SER ÚLTIMO para ejecutarse PRIMERO (ejecuta PRIMERO)
+# Las peticiones OPTIONS (preflight) las maneja CORSMiddleware automáticamente
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.origins_list,  # ✅ Usa la configuración desde .env
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, PUT, DELETE, OPTIONS, etc.)
+    allow_headers=["*"],  # Permite todos los headers
+)
 
 # ✅ Configurar limiter de slowapi
 app.state.limiter = limiter

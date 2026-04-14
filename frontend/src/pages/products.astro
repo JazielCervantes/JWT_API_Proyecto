@@ -102,15 +102,17 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div>
           <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Categoría</label>
-          <input id="pCategory" class="input-dark" placeholder="Electrónica..." />
+          <input id="pCategory" class="input-dark" placeholder="Selecciona una categoría..." list="categoriasList" />
+          <datalist id="categoriasList"></datalist>
         </div>
         <div>
           <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Marca</label>
-          <input id="pBrand" class="input-dark" placeholder="Brand..." />
+          <input id="pBrand" class="input-dark" placeholder="Selecciona una marca..." list="marcasList" />
+          <datalist id="marcasList"></datalist>
         </div>
         <div class="col-span-2">
           <label class="block text-sm font-semibold mb-2" style="color:rgba(240,240,255,0.7);font-family:'Outfit',sans-serif">Descripción</label>
-          <textarea id="pDesc" class="input-dark resize-none" rows="2" placeholder="Descripción..."></textarea>
+          <textarea id="pDesc" class="input-dark resize-none" rows="2" placeholder="Ingresa una descripción del producto..."></textarea>
         </div>
       </div>
       <div id="modalError" class="alert-error"></div>
@@ -132,6 +134,24 @@ import Layout from '../layouts/Layout.astro';
   let currentSearch = '';
   let currentSort = 'created_at';
   let editingId = null;
+
+  // Cargar categorías y marcas para autocomplete
+  async function cargarCategoriasMarcas() {
+    try {
+      const categorias = await api.getCategories();
+      const marcas = await api.getBrands();
+      
+      // Llenar datalist de categorías
+      const categoriasLista = document.getElementById('categoriasList');
+      categoriasLista.innerHTML = categorias.map(cat => `<option value="${cat}">`).join('');
+      
+      // Llenar datalist de marcas
+      const marcasLista = document.getElementById('marcasList');
+      marcasLista.innerHTML = marcas.map(marca => `<option value="${marca}">`).join('');
+    } catch (err) {
+      console.error('Error cargando categorías/marcas:', err);
+    }
+  }
 
   // Auth UI
   const authenticated = isAuthenticated();
@@ -242,6 +262,7 @@ import Layout from '../layouts/Layout.astro';
   function openModal(title = 'Nuevo Producto') {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalError').classList.remove('alert-visible');
+    cargarCategoriasMarcas(); // Cargar opciones cuando se abre el modal
     modal.classList.add('active');
   }
   function closeModal() {
