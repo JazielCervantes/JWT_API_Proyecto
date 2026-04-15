@@ -49,7 +49,7 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
       <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Sidebar navigation">
         <p class="px-3 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Menú</p>
 
-        <a href="/dashboard"
+        <a id="nav-dashboard" href="/dashboard"
           class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
             currentPage === 'dashboard'
               ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
@@ -82,11 +82,11 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
           Usuarios
         </a>
 
-        <div class="pt-3">
+        <div id="nav-cuenta" class="pt-3">
           <p class="px-3 pt-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Cuenta</p>
         </div>
 
-        <a href="/profile"
+        <a id="nav-profile" href="/profile"
           class:list={["flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150",
             currentPage === 'profile'
               ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
@@ -110,7 +110,7 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
       </nav>
 
       <!-- User section -->
-      <div class="p-3 border-t border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+      <div id="sidebarUserSection" class="p-3 border-t border-zinc-200 dark:border-zinc-800 flex-shrink-0">
         <div id="sidebarUser" class="flex items-center gap-3 p-2 rounded-xl">
           <div id="sidebarAvatar" class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0"></div>
           <div class="flex-1 min-w-0">
@@ -122,6 +122,21 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
             </svg>
           </button>
+        </div>
+      </div>
+
+      <!-- Guest section -->
+      <div id="sidebarGuest" class="p-3 border-t border-zinc-200 dark:border-zinc-800 flex-shrink-0" style="display:none">
+        <div class="flex flex-col gap-2">
+          <a href="/login" class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 text-white text-[13px] font-medium hover:bg-indigo-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+            </svg>
+            Iniciar sesión
+          </a>
+          <a href="/register" class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-[13px] font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+            Crear cuenta
+          </a>
         </div>
       </div>
     </aside>
@@ -203,7 +218,8 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
     (function() {
       try {
         var user = JSON.parse(localStorage.getItem('user') || 'null');
-        if (user) {
+        var token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        if (user && token) {
           var initials = (user.full_name || '?').split(' ').map(function(w) { return w[0]; }).join('').slice(0,2).toUpperCase();
           var avatarEl = document.getElementById('sidebarAvatar');
           var nameEl = document.getElementById('sidebarName');
@@ -215,6 +231,13 @@ const { title = 'Dashboard', currentPage = '' } = Astro.props;
             var navUsers = document.getElementById('nav-users');
             if (navUsers) navUsers.style.display = '';
           }
+        } else {
+          ['nav-dashboard', 'nav-cuenta', 'nav-profile', 'sidebarUserSection'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+          var guestEl = document.getElementById('sidebarGuest');
+          if (guestEl) guestEl.style.display = '';
         }
       } catch(e) {}
     })();
